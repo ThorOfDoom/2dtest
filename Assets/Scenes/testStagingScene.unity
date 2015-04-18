@@ -230,6 +230,10 @@ Prefab:
       propertyPath: m_RootOrder
       value: 5
       objectReference: {fileID: 0}
+    - target: {fileID: 11483312, guid: eb0765d6b58ea46c48bf2567d7afc650, type: 2}
+      propertyPath: walkUnitsPerSecond
+      value: 10
+      objectReference: {fileID: 0}
     m_RemovedComponents: []
   m_ParentPrefab: {fileID: 100100000, guid: eb0765d6b58ea46c48bf2567d7afc650, type: 2}
   m_IsPrefabParent: 0

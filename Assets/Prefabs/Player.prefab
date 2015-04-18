@@ -13,6 +13,7 @@ GameObject:
   - 61: {fileID: 6100424}
   - 50: {fileID: 5085602}
   - 114: {fileID: 11434304}
+  - 114: {fileID: 11483312}
   m_Layer: 8
   m_Name: Player
   m_TagString: Untagged
@@ -103,6 +104,23 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   moving: 0
+  running: 0
+  runToggle: 0
+--- !u!114 &11483312
+MonoBehaviour:
+  m_ObjectHideFlags: 1
+  m_PrefabParentObject: {fileID: 0}
+  m_PrefabInternal: {fileID: 100100000}
+  m_GameObject: {fileID: 162650}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: dc2fada03d05a4e358919259f18de805, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  walkVelocity: 3
+  runVelocity: 9
+  runAcceleration: 2
+  velX: 0
 --- !u!1001 &100100000
 Prefab:
   m_ObjectHideFlags: 1

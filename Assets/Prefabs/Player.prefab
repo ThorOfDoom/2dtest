@@ -119,7 +119,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   walkVelocity: 3
   runVelocity: 9
-  runAcceleration: 2
+  runAcceleration: 1
   velX: 0
 --- !u!1001 &100100000
 Prefab:

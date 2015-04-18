@@ -17,7 +17,7 @@ public class Player : MonoBehaviour
 	
 	// debug
 	public float velX;
-	public Vector2 oldPos;
+	private Vector2 oldPos;
 
 	// Use this for initialization
 	void Start ()

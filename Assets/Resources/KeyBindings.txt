@@ -1,3 +1,5 @@
 # Buttonname=KeyName=AlternativeKeyName
-left=left=a
-right=right=d
+moveLeft=left=a
+moveRight=right=d
+run=left shift=left shift
+runToggle=right shift=right shift

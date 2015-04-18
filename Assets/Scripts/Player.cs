@@ -10,6 +10,8 @@ public class Player : MonoBehaviour
 	Rigidbody2D body;
 
 	private bool shouldMove = false;
+	private bool shouldRun = false;
+	private Vector2 velocity;
 
 	// Use this for initialization
 	void Start ()
@@ -32,15 +34,23 @@ public class Player : MonoBehaviour
 		} else {
 			shouldMove = false;
 		}
+		if ((playerInputController.running && shouldMove) || playerInputController.runToggle) {
+			shouldRun = true;
+		} else {
+			shouldRun = false;
+		}
 	}
 
 	void MovePlayer ()
 	{
+		velocity = body.velocity;
 		if (shouldMove) {
-			body.velocity = new Vector2 (walkVelocity * playerInputController.moving, body.velocity.y);
+			velocity.x = walkVelocity * playerInputController.moving;
 			transform.localScale = new Vector3 (transform.localScale.x * (body.velocity.x > 0 ? 1 : -1), transform.localScale.y * 1, transform.localScale.z * 1);
 		} else {
-			body.velocity = new Vector2 (0.0f, body.velocity.y);
+			velocity.x = 0.0f;
 		}
+
+		body.velocity = velocity;
 	}
 }

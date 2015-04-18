@@ -5,21 +5,37 @@ using System.Collections.Generic;
 public class PlayerInputController : MonoBehaviour
 {
 	public int moving;
+	public bool running = false;
+	public bool runToggle = false;
+
 	private Dictionary<string, string> keyBindings;
 	// Use this for initialization
 	void Start ()
 	{
 		keyBindings = GetKeyBindings ();
+		foreach (KeyValuePair<string, string> temp in keyBindings) {
+			Debug.Log ("key: " + temp.Key + " value: " + temp.Value);
+		}
 	}
 
 	void Update ()
 	{
 		moving = 0;
-		if (Input.GetKey (keyBindings ["left"]) || Input.GetKey (keyBindings ["leftAlt"])) {
+		running = false;
+
+		if (Input.GetKey (keyBindings ["moveLeft"]) || Input.GetKey (keyBindings ["moveLeftAlt"])) {
 			moving -= 1;
 		}
-		if (Input.GetKey (keyBindings ["right"]) || Input.GetKey (keyBindings ["rightAlt"])) {
+		if (Input.GetKey (keyBindings ["moveRight"]) || Input.GetKey (keyBindings ["moveRightAlt"])) {
 			moving += 1;
+		}
+		
+		if (Input.GetKey (keyBindings ["run"]) || Input.GetKey (keyBindings ["runAlt"])) {
+			running = true;
+		}
+		
+		if (Input.GetKeyDown (keyBindings ["runToggle"]) || Input.GetKeyDown (keyBindings ["runToggleAlt"])) {
+			runToggle = runToggle ? false : true;
 		}
 	}
 
@@ -36,12 +52,8 @@ public class PlayerInputController : MonoBehaviour
 		while ((line = textStream.ReadLine()) != null) {
 			if (!string.IsNullOrEmpty (line)) {
 				if (!line.StartsWith ("#")) {
-					string[] binding = line.Split ('=');
-
-					//if only one key set add the second
-					if (binding.Length == 2) {
-						binding [2] = binding [1];
-					}
+					string[] binding = new string[3];
+					binding = line.Split ('=');
 					
 					keys.Add (binding [0], binding [1]);
 					keys.Add (binding [0] + "Alt", binding [2]);

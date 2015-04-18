@@ -1,0 +1,3 @@
+# Buttonname=KeyName=AlternativeKeyName
+left=left=a
+right=right=d

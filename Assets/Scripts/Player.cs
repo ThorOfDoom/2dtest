@@ -17,10 +17,14 @@ public class Player : MonoBehaviour
 	
 	// debug
 	public float velX;
+	public Vector2 oldPos;
 
 	// Use this for initialization
 	void Start ()
 	{
+		QualitySettings.vSyncCount = 0;
+		Application.targetFrameRate = 60;
+
 		playerInputController = GetComponent<PlayerInputController> ();
 		body = GetComponent<Rigidbody2D> ();
 	}
@@ -64,10 +68,17 @@ public class Player : MonoBehaviour
 			velocity.x *= playerInputController.moving;
 			transform.localScale = new Vector3 (Mathf.Abs (transform.localScale.x) * (body.velocity.x > 0 ? 1 : -1), transform.localScale.y * 1, transform.localScale.z * 1);
 		} else {
-			velocity.x = 0.0f;
+			if (absVelX <= walkVelocity) {
+				velocity.x = 0.0f;
+			} else {
+				velocity.x = (absVelX - runAcceleration / 2) * (body.velocity.x > 0 ? 1 : -1);
+			}
+			Debug.DrawLine (oldPos, body.position, Color.red, 5.0f);
 		}
 
 		body.velocity = velocity;
 		velX = body.velocity.x;
+		Debug.Log (velX);
+		oldPos = body.position;
 	}
 }

@@ -13,9 +13,6 @@ public class PlayerInputController : MonoBehaviour
 	void Start ()
 	{
 		keyBindings = GetKeyBindings ();
-		foreach (KeyValuePair<string, string> temp in keyBindings) {
-			Debug.Log ("key: " + temp.Key + " value: " + temp.Value);
-		}
 	}
 
 	void Update ()

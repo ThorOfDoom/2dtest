@@ -20,7 +20,9 @@ public class HUDFPS : MonoBehaviour
 	public bool allowDrag = true; // Do you want to allow the dragging of the FPS window
 	public  float frequency = 0.5F; // The update frequency of the fps
 	public int nbDecimal = 1; // How many decimal do you want to display
-	
+	public int lowestGreenValue = 30;
+	public int lowestYellowValue = 10;
+    
 	private float accum = 0f; // FPS accumulated over the interval
 	private int   frames = 0; // Frames drawn over the interval
 	private Color color = Color.white; // The color of the GUI, depending of the FPS ( R < 10, Y < 30, G >= 30 )
@@ -47,7 +49,7 @@ public class HUDFPS : MonoBehaviour
 			sFPS = fps.ToString ("f" + Mathf.Clamp (nbDecimal, 0, 10));
 			
 			//Update the color
-			color = (fps >= 30) ? Color.green : ((fps > 10) ? Color.red : Color.yellow);
+			color = (fps >= lowestGreenValue) ? Color.green : ((fps > lowestYellowValue) ? Color.red : Color.yellow);
 			
 			accum = 0.0F;
 			frames = 0;

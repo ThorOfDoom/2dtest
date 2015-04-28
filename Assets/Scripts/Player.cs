@@ -1,6 +1,16 @@
 ﻿using UnityEngine;
 using System.Collections;
-// TODO framerate! & sliding
+using System.Collections.Generic;
+
+
+/*
+ * TODO:
+ * replace the overlap circle with soem rays
+ * add rays to the sides
+ * make the player stick to walls if the right key is pressed
+ * make wall jump
+ */
+
 [RequireComponent (typeof(PlayerInputController))]
 public class Player : MonoBehaviour
 {
@@ -15,10 +25,13 @@ public class Player : MonoBehaviour
 	public float jumpHeight = 3.0f;
 	public float slideReductionMultiplier = 0.93f;
 	public float airSlideReductionMultiplier = 0.80f;
-
+	public int numberOfGroundCheckRays = 3;
+	public int numberOfWallCheckRays = 3;
+	public float skinDepth = 0.05f;
 
 	PlayerInputController playerInputController;
 	Rigidbody2D body;
+	BoxCollider2D collider;
 
 	private bool shouldMove = false;
 	private bool shouldRun = false;
@@ -30,6 +43,8 @@ public class Player : MonoBehaviour
 	private bool jumpFinished = true;
 	private bool didMove = false;
 	private float lastKnownVelocityX;
+	private List<Vector3> groundCheckRayOffsets = new List<Vector3> ();
+	private List<Vector3> wallCheckRayOffsets = new List<Vector3> ();
 
 	// debug
 	public float lastVelocityX;
@@ -43,6 +58,10 @@ public class Player : MonoBehaviour
 
 		playerInputController = GetComponent<PlayerInputController> ();
 		body = GetComponent<Rigidbody2D> ();
+		collider = GetComponent<BoxCollider2D> ();
+
+		InitializeRays ();
+
 		Debug.Log (Mathf.Sqrt (2 * Mathf.Abs (Physics2D.gravity.y) * jumpHeight));
 		Debug.Log (Physics2D.gravity.y);
 	}
@@ -62,7 +81,7 @@ public class Player : MonoBehaviour
 	void OnDrawGizmos ()
 	{
 		Gizmos.color = Color.white;
-		Gizmos.DrawWireSphere (groundCheck.position, groundRadius);
+		//Gizmos.DrawWireSphere (groundCheck.position, groundRadius);
 	}
 
 	void CheckInputs ()
@@ -111,9 +130,6 @@ public class Player : MonoBehaviour
 		} else if (didMove) {
 			if (Mathf.Abs (lastKnownVelocityX) > walkVelocity || isJumping) {
 				lastKnownVelocityX *= isJumping ? airSlideReductionMultiplier : slideReductionMultiplier;
-				if (isJumping) {
-					Debug.Log (absVelX);
-				}
 			} else {
 				didMove = false;
 				lastKnownVelocityX = 0.0f;
@@ -155,7 +171,56 @@ public class Player : MonoBehaviour
 
 	bool isGrounded ()
 	{
-		bool isGrounded = Physics2D.OverlapCircle (groundCheck.position, groundRadius, groundLayerMask);
+		// TODO remeber that this is weird for debug reasosn aka. not optimised :)
+		bool isGrounded = false;
+		foreach (Vector3 rayOffset in groundCheckRayOffsets) {
+			if (!isGrounded) {
+				RaycastHit2D hit = Physics2D.Raycast ((transform.position + rayOffset), -Vector2.up, (collider.bounds.extents.y + 0.1f), groundLayerMask);
+				if (hit.collider != null) {
+					isGrounded = true;
+				}
+			}
+			Debug.DrawRay ((transform.position + rayOffset), new Vector2 (0.0f, -(collider.bounds.extents.y + 0.1f)), Color.red);
+		}
 		return isGrounded;
 	}
+
+	void InitializeRays ()
+	{
+		CalculateGroundCheckRayPositions ();
+		//CalculateWallCheckRayPositions ();
+	}
+
+	void CalculateGroundCheckRayPositions ()
+	{
+		for (int i = 0; i < numberOfGroundCheckRays; i++) {
+			float xAxisOffset = skinDepth - collider.bounds.extents.x + i * (collider.bounds.size.x - 2 * skinDepth) / (numberOfGroundCheckRays - 1);
+			groundCheckRayOffsets.Add (new Vector3 (xAxisOffset, 0.0f, 0.0f));
+		}
+		/*
+		Debug.Log("ground check ray offsets:");
+		foreach (Vector3 rayOffset in groundCheckRayOffsets) {
+			Debug.Log (rayOffset.x);
+		}
+		 */
+	}
+	
+	void CalculateWallCheckRayPositions ()
+	{
+		for (int i = 0; i < numberOfWallCheckRays; i++) {
+			float yAxisOffset = skinDepth - collider.bounds.extents.y + i * (collider.bounds.size.y - 2 * skinDepth) / (numberOfWallCheckRays - 1);
+			wallCheckRayOffsets.Add (new Vector3 (0.0f, yAxisOffset, 0.0f));
+		}
+		Debug.Log ("wall check ray offsets:");
+		foreach (Vector3 rayOffset in wallCheckRayOffsets) {
+			Debug.Log (rayOffset.y);
+		}
+	}
+
+
+
+
+
+
+
 }

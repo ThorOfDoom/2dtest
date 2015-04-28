@@ -5,9 +5,6 @@ using System.Collections.Generic;
 
 /*
  * TODO:
- * replace the overlap circle with soem rays
- * add rays to the sides
- * make the player stick to walls if the right key is pressed
  * make wall jump
  */
 
@@ -30,6 +27,7 @@ public class Player : MonoBehaviour
 	public int numberOfWallCheckRays = 3;
 	public float skinDepth = 0.05f;
 	public int touchesWall = 0;
+	public float wallHangingGravityScale = 0.3f;
 
 	PlayerInputController playerInputController;
 	Rigidbody2D body;
@@ -71,7 +69,7 @@ public class Player : MonoBehaviour
 	void FixedUpdate ()
 	{
 		grounded = isGrounded ();
-		touchesWall = isTouchingWall ();
+		touchesWall = !grounded ? isTouchingWall () : 0;
 		MovePlayer ();
 
 	}
@@ -111,7 +109,7 @@ public class Player : MonoBehaviour
 	}
 
 	void MovePlayer ()
-	{
+	{// TODO: split it up into seperat methods
 		velocity = body.velocity;
 		float absVelX = Mathf.Abs (body.velocity.x);
 		// TODO this is just weird -> feels hackish
@@ -141,6 +139,7 @@ public class Player : MonoBehaviour
 			Debug.DrawLine (oldPos, body.position, Color.green, 5.0f);
 		}
 
+
 		if (shouldJump && !isJumping) {
 			isJumping = true;
 		} else if (isJumping && grounded) {
@@ -149,13 +148,12 @@ public class Player : MonoBehaviour
 			airTime = 0.0f;
 			velocity.y = 0.0f;
 		}
-
-
+		
 		if (isJumping) {
 			airTime += Time.deltaTime;
 			if (shouldJump) {// TODO move the calculation to the top so it is not calculated all the time ;)
 				velocity.y = Mathf.Sqrt (2.0f * Mathf.Abs (Physics2D.gravity.y) * jumpHeight) + Physics2D.gravity.y * airTime;
-			} else {
+			} else if (touchesWall != 0) {
 				//velocity.y = Physics2D.gravity.y * (1 / maxAirTime * airTime);
 				//isJumping = false;
 				//shouldJump = false;
@@ -164,6 +162,15 @@ public class Player : MonoBehaviour
 			}
 			Debug.DrawLine (oldPos, body.position, Color.red, 5.0f);
 		}
+		
+		
+		if (!grounded && touchesWall != 0 && playerInputController.moving == touchesWall) {
+			velocity.y = 0.0f;
+			body.gravityScale = wallHangingGravityScale;
+		} else { 
+			body.gravityScale = 1.0f;
+		}
+
 
 		//Debug.Log (velocity.x);
 		body.velocity = velocity;

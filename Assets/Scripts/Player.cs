@@ -19,6 +19,7 @@ public class Player : MonoBehaviour
 	public float runAcceleration;
 	public Transform groundCheck;
 	public LayerMask groundLayerMask;
+	public LayerMask wallLayerMask;
 	public bool grounded = false;
 	public float jumpStrength = 10.0f;
 	public float maxAirTime = 0.5f;
@@ -28,6 +29,7 @@ public class Player : MonoBehaviour
 	public int numberOfGroundCheckRays = 3;
 	public int numberOfWallCheckRays = 3;
 	public float skinDepth = 0.05f;
+	public int touchesWall = 0;
 
 	PlayerInputController playerInputController;
 	Rigidbody2D body;
@@ -69,6 +71,7 @@ public class Player : MonoBehaviour
 	void FixedUpdate ()
 	{
 		grounded = isGrounded ();
+		touchesWall = isTouchingWall ();
 		MovePlayer ();
 
 	}
@@ -185,10 +188,47 @@ public class Player : MonoBehaviour
 		return isGrounded;
 	}
 
+	int isTouchingWall ()
+	{	// returns -1 if touching left | 0 if touching noWall | 1 if touchign right
+		return isTouchingLeftWall () ? -1 : (isTouchingRightWall () ? 1 : 0);
+	}
+
+	bool isTouchingRightWall ()
+	{
+		// TODO remeber that this is weird for debug reasosn aka. not optimised :)
+		bool isTouchingRightWall = false;
+		foreach (Vector3 rayOffset in wallCheckRayOffsets) {
+			if (!isTouchingRightWall) {
+				RaycastHit2D hit = Physics2D.Raycast ((transform.position + rayOffset), Vector2.right, (collider.bounds.extents.x + 0.1f), wallLayerMask);
+				if (hit.collider != null) {
+					isTouchingRightWall = true;
+				}
+			}
+			Debug.DrawRay ((transform.position + rayOffset), new Vector2 ((collider.bounds.extents.x + 0.1f), 0.0f), Color.green);
+		}
+		return isTouchingRightWall;
+	}
+    
+	bool isTouchingLeftWall ()
+	{
+		// TODO remeber that this is weird for debug reasosn aka. not optimised :)
+		bool isTouchingLeftWall = false;
+		foreach (Vector3 rayOffset in wallCheckRayOffsets) {
+			if (!isTouchingLeftWall) {
+				RaycastHit2D hit = Physics2D.Raycast ((transform.position + rayOffset), -Vector2.right, (collider.bounds.extents.x + 0.1f), wallLayerMask);
+				if (hit.collider != null) {
+					isTouchingLeftWall = true;
+				}
+			}
+			Debug.DrawRay ((transform.position + rayOffset), new Vector2 (-(collider.bounds.extents.x + 0.1f), 0.0f), Color.green);
+		}
+		return isTouchingLeftWall;
+	}
+    
 	void InitializeRays ()
 	{
 		CalculateGroundCheckRayPositions ();
-		//CalculateWallCheckRayPositions ();
+		CalculateWallCheckRayPositions ();
 	}
 
 	void CalculateGroundCheckRayPositions ()
@@ -211,10 +251,12 @@ public class Player : MonoBehaviour
 			float yAxisOffset = skinDepth - collider.bounds.extents.y + i * (collider.bounds.size.y - 2 * skinDepth) / (numberOfWallCheckRays - 1);
 			wallCheckRayOffsets.Add (new Vector3 (0.0f, yAxisOffset, 0.0f));
 		}
+		/*
 		Debug.Log ("wall check ray offsets:");
 		foreach (Vector3 rayOffset in wallCheckRayOffsets) {
 			Debug.Log (rayOffset.y);
 		}
+		*/
 	}
 
 

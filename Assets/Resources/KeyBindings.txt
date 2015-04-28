@@ -3,3 +3,4 @@ moveLeft=left=a
 moveRight=right=d
 run=left shift=left shift
 runToggle=right shift=right shift
+jump=up=w

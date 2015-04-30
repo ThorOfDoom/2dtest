@@ -45,8 +45,9 @@ public class Player : MonoBehaviour
 	private float lastKnownVelocityX;
 	private List<Vector3> groundCheckRayOffsets = new List<Vector3> ();
 	private List<Vector3> wallCheckRayOffsets = new List<Vector3> ();
-	private bool doWallJump = false;
+	public bool doWallJump = false;
 	private int wallJumpDirection = 0;
+	private bool jumpKeyPressed = false;
 
 	// debug
 	public float lastVelocityX;
@@ -100,18 +101,26 @@ public class Player : MonoBehaviour
 		} else {
 			shouldMove = false;
 		}
+
 		if ((playerInputController.running && shouldMove) || playerInputController.runToggle) {
 			shouldRun = true;
 		} else {
 			shouldRun = false;
 		}
-		if (playerInputController.jumping == 1 && jumpFinished && grounded) {
-			shouldJump = true;
-			jumpFinished = false;
+
+		if (playerInputController.jumping == 1) {
+			if (jumpFinished && grounded) {
+				shouldJump = true;
+				jumpFinished = false;
+			} else {
+				jumpKeyPressed = true;
+			}
 		}
+
 		if (playerInputController.jumping == -1) {
 			shouldJump = false;
 			jumpFinished = true;
+			jumpKeyPressed = false;
 		}
 	}
 
@@ -161,11 +170,14 @@ public class Player : MonoBehaviour
 				velocity.x = 0.0f;
 			}
 			airTime = 0.0f;
-		} else if (playerInputController.jumping == 1 && touchesWall != 0) {
+		} else if ((playerInputController.jumping == 1 || jumpKeyPressed) && touchesWall != 0) {
 			doWallJump = true;
 			wallJumpDirection = -(touchesWall);
 			airTime = 0.0f;
+			jumpKeyPressed = false;
 		} 
+
+
 
 		if (isJumping) {
 			airTime += Time.deltaTime;
@@ -192,7 +204,7 @@ public class Player : MonoBehaviour
 			didMove = true;
 			lastKnownVelocityX = velocity.x;
 			Debug.DrawLine (oldPos, body.position, Color.yellow, 5.0f);
-		} else {
+		} else if (!grounded) {
 			Debug.DrawLine (oldPos, body.position, Color.magenta, 5.0f);
 		}
 

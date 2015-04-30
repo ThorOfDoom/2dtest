@@ -15,8 +15,7 @@ public class Player : MonoBehaviour
 	public float runVelocity;
 	public float runAcceleration;
 	public Transform groundCheck;
-	public LayerMask groundLayerMask;
-	public LayerMask wallLayerMask;
+	public LayerMask PlatformLayerMask;
 	public bool grounded = false;
 	public float jumpStrength = 10.0f;
 	public float maxAirTime = 0.5f;
@@ -28,6 +27,7 @@ public class Player : MonoBehaviour
 	public float skinDepth = 0.05f;
 	public int touchesWall = 0;
 	public float wallHangingGravityScale = 0.3f;
+	public float wallJumpTime = 0.4f;
 
 	PlayerInputController playerInputController;
 	Rigidbody2D body;
@@ -45,10 +45,13 @@ public class Player : MonoBehaviour
 	private float lastKnownVelocityX;
 	private List<Vector3> groundCheckRayOffsets = new List<Vector3> ();
 	private List<Vector3> wallCheckRayOffsets = new List<Vector3> ();
+	private bool doWallJump = false;
+	private int wallJumpDirection = 0;
 
 	// debug
 	public float lastVelocityX;
 	private Vector2 oldPos;
+	private int lastWallTouch = 0;
 
 	// Use this for initialization
 	void Start ()
@@ -70,6 +73,10 @@ public class Player : MonoBehaviour
 	{
 		grounded = isGrounded ();
 		touchesWall = !grounded ? isTouchingWall () : 0;
+		/*if (lastWallTouch != touchesWall) {
+			lastWallTouch = touchesWall;
+			Debug.Log (touchesWall);
+		}*/
 		MovePlayer ();
 
 	}
@@ -98,11 +105,11 @@ public class Player : MonoBehaviour
 		} else {
 			shouldRun = false;
 		}
-		if (playerInputController.jumping && grounded && jumpFinished) {
+		if (playerInputController.jumping == 1 && jumpFinished && grounded) {
 			shouldJump = true;
 			jumpFinished = false;
 		}
-		if (!playerInputController.jumping) {
+		if (playerInputController.jumping == -1) {
 			shouldJump = false;
 			jumpFinished = true;
 		}
@@ -129,8 +136,8 @@ public class Player : MonoBehaviour
 			lastKnownVelocityX = velocity.x;
 
 		} else if (didMove) {
-			if (Mathf.Abs (lastKnownVelocityX) > walkVelocity || isJumping) {
-				lastKnownVelocityX *= isJumping ? airSlideReductionMultiplier : slideReductionMultiplier;
+			if (Mathf.Abs (lastKnownVelocityX) > walkVelocity || !grounded) {
+				lastKnownVelocityX *= !grounded ? airSlideReductionMultiplier : slideReductionMultiplier;
 			} else {
 				didMove = false;
 				lastKnownVelocityX = 0.0f;
@@ -140,20 +147,36 @@ public class Player : MonoBehaviour
 		}
 
 
-		if (shouldJump && !isJumping) {
+		if (shouldJump && !isJumping && (grounded) && !doWallJump) {
 			isJumping = true;
-		} else if (isJumping && grounded) {
+		} else if (isJumping && (grounded) && !doWallJump) {
 			isJumping = false;
 			shouldJump = false;
 			airTime = 0.0f;
 			velocity.y = 0.0f;
-		}
-		
+		} else if (doWallJump && (airTime > wallJumpTime)) {
+			doWallJump = false;
+			wallJumpDirection = 0;
+			if (playerInputController.moving == 0) {
+				velocity.x = 0.0f;
+			}
+			airTime = 0.0f;
+		} else if (playerInputController.jumping == 1 && touchesWall != 0) {
+			doWallJump = true;
+			wallJumpDirection = -(touchesWall);
+			airTime = 0.0f;
+		} 
+
 		if (isJumping) {
 			airTime += Time.deltaTime;
 			if (shouldJump) {// TODO move the calculation to the top so it is not calculated all the time ;)
 				velocity.y = Mathf.Sqrt (2.0f * Mathf.Abs (Physics2D.gravity.y) * jumpHeight) + Physics2D.gravity.y * airTime;
 			} else if (touchesWall != 0) {
+				isJumping = false;
+				shouldJump = false;
+				airTime = 0.0f;
+				//velocity.y = 0.0f;
+			} else {
 				//velocity.y = Physics2D.gravity.y * (1 / maxAirTime * airTime);
 				//isJumping = false;
 				//shouldJump = false;
@@ -161,12 +184,21 @@ public class Player : MonoBehaviour
 				//airTime = 0.0f;
 			}
 			Debug.DrawLine (oldPos, body.position, Color.red, 5.0f);
+		} else if (doWallJump) {
+			airTime += Time.deltaTime;
+			velocity.y = Mathf.Sqrt (2.0f * Mathf.Abs (Physics2D.gravity.y) * jumpHeight) + Physics2D.gravity.y * airTime;
+			velocity.x = walkVelocity * wallJumpDirection;
+			transform.localScale = new Vector3 (Mathf.Abs (transform.localScale.x) * (body.velocity.x > 0 ? 1 : -1), transform.localScale.y, transform.localScale.z);
+			didMove = true;
+			lastKnownVelocityX = velocity.x;
+			Debug.DrawLine (oldPos, body.position, Color.yellow, 5.0f);
+		} else {
+			Debug.DrawLine (oldPos, body.position, Color.magenta, 5.0f);
 		}
-		
-		
-		if (!grounded && touchesWall != 0 && playerInputController.moving == touchesWall) {
-			velocity.y = 0.0f;
-			body.gravityScale = wallHangingGravityScale;
+
+
+		if (!grounded && touchesWall != 0) {
+			//body.gravityScale = wallHangingGravityScale;
 		} else { 
 			body.gravityScale = 1.0f;
 		}
@@ -185,7 +217,7 @@ public class Player : MonoBehaviour
 		bool isGrounded = false;
 		foreach (Vector3 rayOffset in groundCheckRayOffsets) {
 			if (!isGrounded) {
-				RaycastHit2D hit = Physics2D.Raycast ((transform.position + rayOffset), -Vector2.up, (collider.bounds.extents.y + 0.1f), groundLayerMask);
+				RaycastHit2D hit = Physics2D.Raycast ((transform.position + rayOffset), -Vector2.up, (collider.bounds.extents.y + 0.1f), PlatformLayerMask);
 				if (hit.collider != null) {
 					isGrounded = true;
 				}
@@ -206,7 +238,7 @@ public class Player : MonoBehaviour
 		bool isTouchingRightWall = false;
 		foreach (Vector3 rayOffset in wallCheckRayOffsets) {
 			if (!isTouchingRightWall) {
-				RaycastHit2D hit = Physics2D.Raycast ((transform.position + rayOffset), Vector2.right, (collider.bounds.extents.x + 0.1f), wallLayerMask);
+				RaycastHit2D hit = Physics2D.Raycast ((transform.position + rayOffset), Vector2.right, (collider.bounds.extents.x + 0.1f), PlatformLayerMask);
 				if (hit.collider != null) {
 					isTouchingRightWall = true;
 				}
@@ -222,7 +254,7 @@ public class Player : MonoBehaviour
 		bool isTouchingLeftWall = false;
 		foreach (Vector3 rayOffset in wallCheckRayOffsets) {
 			if (!isTouchingLeftWall) {
-				RaycastHit2D hit = Physics2D.Raycast ((transform.position + rayOffset), -Vector2.right, (collider.bounds.extents.x + 0.1f), wallLayerMask);
+				RaycastHit2D hit = Physics2D.Raycast ((transform.position + rayOffset), -Vector2.right, (collider.bounds.extents.x + 0.1f), PlatformLayerMask);
 				if (hit.collider != null) {
 					isTouchingLeftWall = true;
 				}

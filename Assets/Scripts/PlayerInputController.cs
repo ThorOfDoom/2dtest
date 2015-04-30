@@ -7,7 +7,7 @@ public class PlayerInputController : MonoBehaviour
 	public int moving;
 	public bool running = false;
 	public bool runToggle = false;
-	public bool jumping = false;
+	public int jumping = 0;
 
 	private Dictionary<string, string> keyBindings;
 	// Use this for initialization
@@ -37,11 +37,13 @@ public class PlayerInputController : MonoBehaviour
 		}
 
 		if (Input.GetKeyDown (keyBindings ["jump"]) || Input.GetKeyDown (keyBindings ["jumpAlt"])) {
-			jumping = true;
+			jumping = 1;
+		} else {
+			jumping = 0;
 		}
 
 		if (Input.GetKeyUp (keyBindings ["jump"]) || Input.GetKeyUp (keyBindings ["jumpAlt"])) {
-			jumping = false;
+			jumping = -1;
 		}
 	}
 

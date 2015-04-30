@@ -45,6 +45,12 @@ public class Player : MonoBehaviour
 	private float lastKnownVelocityX;
 	private List<Vector3> groundCheckRayOffsets = new List<Vector3> ();
 	private List<Vector3> wallCheckRayOffsets = new List<Vector3> ();
+<<<<<<< Updated upstream
+=======
+	public bool doWallJump = false;
+	private int wallJumpDirection = 0;
+	private bool jumpKeyPressed = false;
+>>>>>>> Stashed changes
 
 	// debug
 	public float lastVelocityX;
@@ -98,13 +104,24 @@ public class Player : MonoBehaviour
 		} else {
 			shouldRun = false;
 		}
+<<<<<<< Updated upstream
 		if (playerInputController.jumping && grounded && jumpFinished) {
 			shouldJump = true;
 			jumpFinished = false;
+=======
+		if (playerInputController.jumping == 1) {
+			if (jumpFinished && grounded) {
+				shouldJump = true;
+				jumpFinished = false;
+			} else {
+				jumpKeyPressed = true;
+			}
+>>>>>>> Stashed changes
 		}
 		if (!playerInputController.jumping) {
 			shouldJump = false;
 			jumpFinished = true;
+			jumpKeyPressed = false;
 		}
 	}
 
@@ -147,8 +164,25 @@ public class Player : MonoBehaviour
 			shouldJump = false;
 			airTime = 0.0f;
 			velocity.y = 0.0f;
+<<<<<<< Updated upstream
 		}
 		
+=======
+		} else if (doWallJump && (airTime > wallJumpTime)) {
+			doWallJump = false;
+			wallJumpDirection = 0;
+			if (playerInputController.moving == 0) {
+				velocity.x = 0.0f;
+			}
+			airTime = 0.0f;
+		} else if ((playerInputController.jumping == 1 || jumpKeyPressed) && touchesWall != 0) {
+			doWallJump = true;
+			wallJumpDirection = -(touchesWall);
+			airTime = 0.0f;
+			jumpKeyPressed = false;
+		} 
+
+>>>>>>> Stashed changes
 		if (isJumping) {
 			airTime += Time.deltaTime;
 			if (shouldJump) {// TODO move the calculation to the top so it is not calculated all the time ;)
@@ -161,6 +195,20 @@ public class Player : MonoBehaviour
 				//airTime = 0.0f;
 			}
 			Debug.DrawLine (oldPos, body.position, Color.red, 5.0f);
+<<<<<<< Updated upstream
+=======
+		} else if (doWallJump) {
+			airTime += Time.deltaTime;
+			velocity.y = Mathf.Sqrt (2.0f * Mathf.Abs (Physics2D.gravity.y) * jumpHeight) + Physics2D.gravity.y * airTime;
+			velocity.x = walkVelocity * wallJumpDirection;
+			transform.localScale = new Vector3 (Mathf.Abs (transform.localScale.x) * (body.velocity.x > 0 ? 1 : -1), transform.localScale.y, transform.localScale.z);
+			didMove = true;
+			lastKnownVelocityX = velocity.x;
+			Debug.Log (airTime);
+			Debug.DrawLine (oldPos, body.position, Color.yellow, 5.0f);
+		} else {
+			Debug.DrawLine (oldPos, body.position, Color.magenta, 5.0f);
+>>>>>>> Stashed changes
 		}
 		
 		

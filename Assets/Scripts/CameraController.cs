@@ -13,6 +13,7 @@ public class CameraController : MonoBehaviour
 	private Player _player;
 	private float _cameraOrthographicWidth;
 	private Vector2 _leash;
+	private float _lastGround;
 
 
 	void Start ()
@@ -27,7 +28,7 @@ public class CameraController : MonoBehaviour
 
 	void Update ()
 	{
-		//DrawLeash ();
+		DrawLeash ();
 
 		float x = CheckXAxis ();
 		float y = CheckYAxis ();
@@ -73,6 +74,12 @@ public class CameraController : MonoBehaviour
 		// Downward movement
 		if (_playerTransform.position.y < (transform.position.y - _leash.y)) {
 			y = _playerTransform.position.y + _leash.y;
+
+			/*if (!float.IsNaN (_player.lastGroundedLevel) && _player.grounded && (_player.lastGroundedLevel + _leash.y) < y) {
+				_lastGround = _player.lastGroundedLevel;
+
+				y = _lastGround + _leash.y;
+			}*/
 
 			if (y < (_min.y + Camera.main.orthographicSize)) {
 				y = _min.y + Camera.main.orthographicSize;

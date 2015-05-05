@@ -11,6 +11,8 @@ public class CameraController : MonoBehaviour
 	private Vector3 _max;
 	private Transform _playerTransform;
 	private Player _player;
+	private float _cameraOrthographicWidth;
+	private Vector2 _leash;
 
 
 	void Start ()
@@ -19,23 +21,16 @@ public class CameraController : MonoBehaviour
 		_max = bounds.bounds.max;
 		_playerTransform = player.GetComponent<Transform> ();
 		_player = player.GetComponent<Player> ();
+		_cameraOrthographicWidth = Camera.main.orthographicSize * Camera.main.aspect;
+		_leash = new Vector2 (leash.x / 2, leash.y / 2);
 	}
 
 	void Update ()
 	{
-
-		//Debug.Log (Camera.main.orthographicSize * ((float)Screen.width / Screen.height));
-
-		//Debug.Log (Mathf.Abs (player.position.x) - Mathf.Abs (transform.position.x));
-
 		//DrawLeash ();
 
-		//Debug.Log ("CAMERA: " + (transform.position.x - leash.x / 2));
-		//Debug.Log ("PLAYER: " + _playerTransform.position.x);
-		
 		float x = CheckXAxis ();
 		float y = CheckYAxis ();
-
 
 		//if(_player.lastGroundedLevel >)
 
@@ -45,15 +40,27 @@ public class CameraController : MonoBehaviour
 	float CheckXAxis ()
 	{
 		float x = transform.position.x;
-		
-		if (false) {
-			
-		} else if (_playerTransform.position.x < (transform.position.x - leash.x / 2)) {
-			//Debug.Log ("OUT TO THE LEFT!");
-			x = _playerTransform.position.x + leash.x / 2;
-		} else if (_playerTransform.position.x > (transform.position.x + leash.x / 2)) {
-			//Debug.Log ("OUT TO THE RIGHT!");
-			x = _playerTransform.position.x - leash.x / 2;
+
+		// Left movement
+		if (_playerTransform.position.x < (transform.position.x - _leash.x)) {
+			x = _playerTransform.position.x + _leash.x;
+
+			if (x < (_min.x + _cameraOrthographicWidth)) {
+				x = _min.x + _cameraOrthographicWidth;
+			}
+
+			return x;
+		}
+
+		// Right movement
+		if (_playerTransform.position.x > (transform.position.x + _leash.x)) {
+			x = _playerTransform.position.x - _leash.x;
+
+			if (x > (_max.x - _cameraOrthographicWidth)) {
+				x = _max.x - _cameraOrthographicWidth;
+			}
+
+			return x;
 		}
 
 		return x;
@@ -63,14 +70,26 @@ public class CameraController : MonoBehaviour
 	{
 		float y = transform.position.y;
 
-		if (false) {
-			
-		} else if (_playerTransform.position.y < (transform.position.y - leash.y / 2)) {
-			//Debug.Log ("OUT TO THE BOTTOM!");
-			y = _playerTransform.position.y + leash.y / 2;
-		} else if (_playerTransform.position.y > (transform.position.y + leash.y / 2)) {
-			//Debug.Log ("OUT TO THE TOP!");
-			y = _playerTransform.position.y - leash.y / 2;
+		// Downward movement
+		if (_playerTransform.position.y < (transform.position.y - _leash.y)) {
+			y = _playerTransform.position.y + _leash.y;
+
+			if (y < (_min.y + Camera.main.orthographicSize)) {
+				y = _min.y + Camera.main.orthographicSize;
+			}
+
+			return y;
+		} 
+
+		// Upward movement
+		if (_playerTransform.position.y > (transform.position.y + _leash.y)) {
+			y = _playerTransform.position.y - _leash.y;
+
+			if (y > (_max.y - Camera.main.orthographicSize)) {
+				y = _max.y - Camera.main.orthographicSize;
+			}
+
+			return y;
 		}
 
 		return y;

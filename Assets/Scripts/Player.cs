@@ -83,30 +83,14 @@ public class Player : MonoBehaviour
 
 	void FixedUpdate ()
 	{
-		/*
-	 * 1. blink after movement
-	 * 2. blink before movement
-	 * 3. blink instead of movement
-	 */
 		grounded = isGrounded ();
 		touchesWall = !grounded ? isTouchingWall () : 0;
-		/*if (lastWallTouch != touchesWall) {
-			lastWallTouch = touchesWall;
-			Debug.Log (touchesWall);
-		}*/
-		MovePlayer ();
 
 		if (shouldBlink) {
-			float _blinkDistance = CheckBlinkDistance ();
-			_blinkDistance *= (facingRight ? 1 : -1);
-
-			transform.position += new Vector3 (_blinkDistance, 0.0f, 0.0f);
-
-			oldPos = transform.position;
-			shouldBlink = false;
+			DoBlink ();
+		} else {
+			MovePlayer ();
 		}
-
-
 	}
 
 	void Update ()
@@ -268,6 +252,17 @@ public class Player : MonoBehaviour
 		//lastVelocity = velocity;
 		lastVelocityX = Mathf.Abs (velocity.x);
 		oldPos = body.position;
+	}
+
+	void DoBlink ()
+	{
+		float _blinkDistance = CheckBlinkDistance ();
+		_blinkDistance *= (facingRight ? 1 : -1);
+		
+		transform.position += new Vector3 (_blinkDistance, 0.0f, 0.0f);
+		
+		oldPos = transform.position;
+		shouldBlink = false;
 	}
 
 	float CheckBlinkDistance ()

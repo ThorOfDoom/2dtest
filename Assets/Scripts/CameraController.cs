@@ -28,7 +28,7 @@ public class CameraController : MonoBehaviour
 
 	void Update ()
 	{
-		DrawLeash ();
+		//DrawLeash ();
 
 		float x = CheckXAxis ();
 		float y = CheckYAxis ();

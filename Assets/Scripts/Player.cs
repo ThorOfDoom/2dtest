@@ -31,6 +31,9 @@ public class Player : MonoBehaviour
 	public float wallHangingGravityScale = 0.3f;
 	public float wallJumpTime = 0.4f;
 	public float lastGroundedLevel;
+	public float blinkDistance;
+	public LayerMask blinkLayerMask;
+	public float blinkCoolDown;
 
 	PlayerInputController playerInputController;
 	Rigidbody2D body;
@@ -51,6 +54,9 @@ public class Player : MonoBehaviour
 	public bool doWallJump = false;
 	private int wallJumpDirection = 0;
 	private bool jumpKeyPressed = false;
+	private bool shouldBlink = false;
+	private bool facingRight = true;
+	private float lastBlinkTime;
 
 	// debug
 	public float lastVelocityX;
@@ -67,6 +73,8 @@ public class Player : MonoBehaviour
 		body = GetComponent<Rigidbody2D> ();
 		collider = GetComponent<BoxCollider2D> ();
 
+		lastBlinkTime = Time.time - blinkCoolDown;
+
 		InitializeRays ();
 
 		Debug.Log (Mathf.Sqrt (2 * Mathf.Abs (Physics2D.gravity.y) * jumpHeight));
@@ -75,6 +83,11 @@ public class Player : MonoBehaviour
 
 	void FixedUpdate ()
 	{
+		/*
+	 * 1. blink after movement
+	 * 2. blink before movement
+	 * 3. blink instead of movement
+	 */
 		grounded = isGrounded ();
 		touchesWall = !grounded ? isTouchingWall () : 0;
 		/*if (lastWallTouch != touchesWall) {
@@ -82,6 +95,17 @@ public class Player : MonoBehaviour
 			Debug.Log (touchesWall);
 		}*/
 		MovePlayer ();
+
+		if (shouldBlink) {
+			float _blinkDistance = CheckBlinkDistance ();
+			_blinkDistance *= (facingRight ? 1 : -1);
+
+			transform.position += new Vector3 (_blinkDistance, 0.0f, 0.0f);
+
+			oldPos = transform.position;
+			shouldBlink = false;
+		}
+
 
 	}
 
@@ -92,8 +116,13 @@ public class Player : MonoBehaviour
 
 	void OnDrawGizmos ()
 	{
-		Gizmos.color = Color.white;
-		//Gizmos.DrawWireSphere (groundCheck.position, groundRadius);
+		Gizmos.color = Color.blue;
+		Vector3 cubePosition = transform.position;
+		Vector3 cubeSize = new Vector3 (0.2f, 0.2f, 0.2f);
+
+		cubePosition.x += facingRight ? 0.4f : -0.4f;
+
+		Gizmos.DrawWireCube (cubePosition, cubeSize);
 	}
 
 	void CheckInputs ()
@@ -125,6 +154,11 @@ public class Player : MonoBehaviour
 			jumpFinished = true;
 			jumpKeyPressed = false;
 		}
+
+		if (playerInputController.blinking && ((lastBlinkTime + blinkCoolDown) < Time.time)) {
+			shouldBlink = true;
+			lastBlinkTime = Time.time;
+		}
 	}
 
 	void MovePlayer ()
@@ -143,7 +177,17 @@ public class Player : MonoBehaviour
 				velocity.x = walkVelocity;
 			}
 			velocity.x *= playerInputController.moving;
-			transform.localScale = new Vector3 (Mathf.Abs (transform.localScale.x) * (body.velocity.x > 0 ? 1 : -1), transform.localScale.y, transform.localScale.z);
+
+			
+			if (body.velocity.x > 0) {
+				facingRight = true;
+			} else if (body.velocity.x < 0) {
+				facingRight = false;
+			}
+
+			transform.localScale = new Vector3 (Mathf.Abs (transform.localScale.x) * (facingRight ? 1 : -1), transform.localScale.y, transform.localScale.z);
+
+
 			didMove = true;
 			lastKnownVelocityX = velocity.x;
 
@@ -224,6 +268,23 @@ public class Player : MonoBehaviour
 		//lastVelocity = velocity;
 		lastVelocityX = Mathf.Abs (velocity.x);
 		oldPos = body.position;
+	}
+
+	float CheckBlinkDistance ()
+	{
+		float distance = blinkDistance;
+		Vector3 skinDepth = new Vector3 (transform.localScale.x / 2, 0.0f, 0.0f);
+
+
+		foreach (Vector3 rayOffset in wallCheckRayOffsets) {
+			RaycastHit2D hit = Physics2D.Raycast ((transform.position + rayOffset + skinDepth), (facingRight ? Vector2.right : -Vector2.right), distance, blinkLayerMask);
+			if (hit.collider != null) {
+				distance = hit.distance;
+			}
+			Debug.DrawRay ((transform.position + rayOffset + skinDepth), ((facingRight ? Vector2.right : -Vector2.right) * distance), Color.blue, 1.0f);
+		}
+
+		return Mathf.Round (distance * 10) / 10.0f;
 	}
 
 	bool isGrounded ()

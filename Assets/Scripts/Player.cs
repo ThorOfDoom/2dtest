@@ -5,7 +5,9 @@ using System.Collections.Generic;
 
 /*
  * TODO:
- * make wall jump
+ * wall jumping should happen at the speed we are at???
+ * do camera movement
+ * blink?
  */
 
 [RequireComponent (typeof(PlayerInputController))]
@@ -28,6 +30,7 @@ public class Player : MonoBehaviour
 	public int touchesWall = 0;
 	public float wallHangingGravityScale = 0.3f;
 	public float wallJumpTime = 0.4f;
+	public float lastGroundedLevel;
 
 	PlayerInputController playerInputController;
 	Rigidbody2D body;
@@ -158,7 +161,7 @@ public class Player : MonoBehaviour
 
 		if (shouldJump && !isJumping && (grounded) && !doWallJump) {
 			isJumping = true;
-		} else if (isJumping && (grounded) && !doWallJump) {
+		} else if (isJumping && (grounded) && !doWallJump && airTime > 0.1f) {// TODO check if airtime value needs adjustment
 			isJumping = false;
 			shouldJump = false;
 			airTime = 0.0f;
@@ -236,6 +239,11 @@ public class Player : MonoBehaviour
 			}
 			Debug.DrawRay ((transform.position + rayOffset), new Vector2 (0.0f, -(collider.bounds.extents.y + 0.1f)), Color.red);
 		}
+
+		if (isGrounded) {
+			lastGroundedLevel = Mathf.Floor (transform.position.y);
+		}
+
 		return isGrounded;
 	}
 

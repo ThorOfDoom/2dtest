@@ -2,7 +2,7 @@ using UnityEngine;
 using System.Collections;
 using System.Collections.Generic;
 
-public class BasicMovement : MonoBehaviour 
+public class BasicMovement : MonoBehaviour
 {
 
 	public LayerMask obstacleLayerMask;
@@ -17,47 +17,47 @@ public class BasicMovement : MonoBehaviour
 
 	private Vector2 velocity;
 	private float groundCheckRayLength;
-	private List<Vector3> wallCheckRayOffsets = new List<Vector3>();
+	private List<Vector3> wallCheckRayOffsets = new List<Vector3> ();
 
 
 	// Use this for initialization
-	void Start () 
+	void Start ()
 	{
 		enemy = GetComponent<Enemy> ();
 		body = GetComponent<Rigidbody2D> ();
 		collider = GetComponent<BoxCollider2D> ();
-		groundCheckRayLength = (collider.bounds.extents.y + skinDepth) / Mathf.Sin(45*(Mathf.PI/180));
-		Debug.Log (Mathf.Sin(45*(Mathf.PI/180)));
+		groundCheckRayLength = (collider.bounds.extents.y + skinDepth) / Mathf.Sin (45 * (Mathf.PI / 180));
+		Debug.Log (Mathf.Sin (45 * (Mathf.PI / 180)));
 		CalculateWallCheckRayPositions ();
 	}
 	
 	// Update is called once per frame
-	void FixedUpdate () 
+	void FixedUpdate ()
 	{
 
 		velocity = body.velocity;
 
 		Vector2 groundCheckRayOrigin;
+		Vector2 groundCheckRayDirection;
 		if (facingRight) {
 			groundCheckRayOrigin = new Vector2 (collider.bounds.max.x - skinDepth, transform.position.y);
+			groundCheckRayDirection = new Vector2 (1.0f, -1.0f);
 		} else {
 			groundCheckRayOrigin = new Vector2 (collider.bounds.min.x + skinDepth, transform.position.y);
+			groundCheckRayDirection = new Vector2 (-1.0f, -1.0f);
 		}
 
 
-		RaycastHit2D groundHit = Physics2D.Raycast (groundCheckRayOrigin,
-		                                      new Vector2(-1.0f, -1.0f),
-		                                      groundCheckRayLength,
-		                                      obstacleLayerMask);
+
+		RaycastHit2D groundHit = Physics2D.Raycast (groundCheckRayOrigin, groundCheckRayDirection, groundCheckRayLength, obstacleLayerMask);
 
 		
-		if (groundHit.collider == null || isTouchingWall ()) 
-		{
-			if (facingRight)
-			{
+		if (groundHit.collider == null || isTouchingWall ()) {
+			//Debug.Log (groundHit.collider.name);
+			if (facingRight) {
 				facingRight = false;
 
-			}else{
+			} else {
 				facingRight = true;
 			}
 			transform.localScale = new Vector3 (Mathf.Abs (transform.localScale.x) * (facingRight ? 1 : -1), transform.localScale.y, transform.localScale.z);
@@ -78,10 +78,10 @@ public class BasicMovement : MonoBehaviour
 	bool isTouchingWall ()
 	{
 
-		foreach (Vector3 rayOffset in wallCheckRayOffsets) 
-		{
+		foreach (Vector3 rayOffset in wallCheckRayOffsets) {
 			RaycastHit2D hit = Physics2D.Raycast ((transform.position + rayOffset), (facingRight ? Vector2.right : -Vector2.right), (collider.bounds.extents.x + 0.1f), obstacleLayerMask);
 			if (hit.collider != null) {
+				//Debug.Log (hit.collider.name);
 				return true;
 			}
 		}

@@ -18,6 +18,14 @@ public class BasicMovement : MonoBehaviour
 	private Vector2 velocity;
 	private float groundCheckRayLength;
 	private List<Vector3> wallCheckRayOffsets = new List<Vector3> ();
+	private Vector2 rightGroundCheckDirection;
+	private Vector2 leftGroundCheckDirection;
+	private float rightRayOriginX;
+	private float leftRayOriginX;
+	private Vector2 groundCheckRayOrigin;
+	private Vector2 groundCheckDirection;
+	private float wallCheckRaycastDistance;
+    
 
 
 	// Use this for initialization
@@ -27,7 +35,13 @@ public class BasicMovement : MonoBehaviour
 		body = GetComponent<Rigidbody2D> ();
 		collider = GetComponent<BoxCollider2D> ();
 		groundCheckRayLength = (collider.bounds.extents.y + skinDepth) / Mathf.Sin (45 * (Mathf.PI / 180));
-		Debug.Log (Mathf.Sin (45 * (Mathf.PI / 180)));
+		rightGroundCheckDirection = new Vector2 (1.0f, -1.0f);
+		leftGroundCheckDirection = new Vector2 (-1.0f, -1.0f);
+		rightRayOriginX = collider.bounds.max.x - skinDepth;
+		leftRayOriginX = collider.bounds.min.x + skinDepth;
+		groundCheckRayOrigin = new Vector2 (0.0f, 0.0f);
+		wallCheckRaycastDistance = (collider.bounds.extents.x + 0.1f);
+		//Debug.Log (Mathf.Sin (45 * (Mathf.PI / 180)));
 		CalculateWallCheckRayPositions ();
 	}
 	
@@ -37,19 +51,18 @@ public class BasicMovement : MonoBehaviour
 
 		velocity = body.velocity;
 
-		Vector2 groundCheckRayOrigin;
-		Vector2 groundCheckRayDirection;
 		if (facingRight) {
-			groundCheckRayOrigin = new Vector2 (collider.bounds.max.x - skinDepth, transform.position.y);
-			groundCheckRayDirection = new Vector2 (1.0f, -1.0f);
+			groundCheckRayOrigin.x = rightRayOriginX;
+			groundCheckDirection = rightGroundCheckDirection;
 		} else {
-			groundCheckRayOrigin = new Vector2 (collider.bounds.min.x + skinDepth, transform.position.y);
-			groundCheckRayDirection = new Vector2 (-1.0f, -1.0f);
+			groundCheckRayOrigin.x = leftRayOriginX;
+			groundCheckDirection = leftGroundCheckDirection;
 		}
+		groundCheckRayOrigin.y = transform.position.y;
 
 
 
-		RaycastHit2D groundHit = Physics2D.Raycast (groundCheckRayOrigin, groundCheckRayDirection, groundCheckRayLength, obstacleLayerMask);
+		RaycastHit2D groundHit = Physics2D.Raycast (groundCheckRayOrigin, groundCheckDirection, groundCheckRayLength, obstacleLayerMask);
 
 		
 		if (groundHit.collider == null || isTouchingWall ()) {
@@ -61,7 +74,8 @@ public class BasicMovement : MonoBehaviour
 				facingRight = true;
 			}
 			transform.localScale = new Vector3 (Mathf.Abs (transform.localScale.x) * (facingRight ? 1 : -1), transform.localScale.y, transform.localScale.z);
-		}
+		} 
+
 		velocity.x = enemy.movementSpeed * transform.localScale.x;
 		
 		body.velocity = velocity;
@@ -69,22 +83,35 @@ public class BasicMovement : MonoBehaviour
 	}
 	void CalculateWallCheckRayPositions ()
 	{
+		float skinDepthWithoutExtents = skinDepth - collider.bounds.extents.y;
+		float distanceBetweenRays = (collider.bounds.size.y - 2 * skinDepth) / (numberOfWallCheckRays - 1);
+		Vector3 currentOffset = new Vector3 (0.0f, 0.0f, 0.0f);
+
 		for (int i = 0; i < numberOfWallCheckRays; i++) {
-			float yAxisOffset = skinDepth - collider.bounds.extents.y + i * (collider.bounds.size.y - 2 * skinDepth) / (numberOfWallCheckRays - 1);
-			wallCheckRayOffsets.Add (new Vector3 (0.0f, yAxisOffset, 0.0f));
+			currentOffset.y = skinDepthWithoutExtents + i * distanceBetweenRays;
+			wallCheckRayOffsets.Add (currentOffset);
 		}
 	}
 
 	bool isTouchingWall ()
 	{
+		Vector2 direction = (facingRight ? Vector2.right : -Vector2.right);
 
+		for (int i = 0; i < numberOfWallCheckRays; i++) {
+			RaycastHit2D hit = Physics2D.Raycast ((transform.position + wallCheckRayOffsets [i]), direction, wallCheckRaycastDistance, obstacleLayerMask);
+			if (hit.collider != null) {
+				//Debug.Log (hit.collider.name);
+				return true;
+			}
+		}
+		/*
 		foreach (Vector3 rayOffset in wallCheckRayOffsets) {
 			RaycastHit2D hit = Physics2D.Raycast ((transform.position + rayOffset), (facingRight ? Vector2.right : -Vector2.right), (collider.bounds.extents.x + 0.1f), obstacleLayerMask);
 			if (hit.collider != null) {
 				//Debug.Log (hit.collider.name);
 				return true;
 			}
-		}
+		}*/
 		return false;
 	}
 

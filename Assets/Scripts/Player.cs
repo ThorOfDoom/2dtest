@@ -5,9 +5,8 @@ using System.Collections.Generic;
 
 /*
  * TODO:
- * wall jumping should happen at the speed we are at???
- * do camera movement
- * blink?
+ * refactor & optimize! http://www.gamasutra.com/blogs/AmirHFassihi/20130828/199134/0__60_fps_in_14_days_What_we_learned_trying_to_optimize_our_game_using_Unity3D.php
+ * go over the enemy again
  */
 
 [RequireComponent (typeof(PlayerInputController))]
@@ -57,6 +56,9 @@ public class Player : MonoBehaviour
 	private bool shouldBlink = false;
 	private bool facingRight = true;
 	private float lastBlinkTime;
+	private float initialJumpVelocity;
+	private float wallTouchCheckRaycastDistance;
+	private float groundCheckRaycastDistance;
 
 	// debug
 	public float lastVelocityX;
@@ -66,8 +68,6 @@ public class Player : MonoBehaviour
 	// Use this for initialization
 	void Start ()
 	{
-		QualitySettings.vSyncCount = 0;
-		Application.targetFrameRate = 60;
 
 		playerInputController = GetComponent<PlayerInputController> ();
 		body = GetComponent<Rigidbody2D> ();
@@ -77,8 +77,11 @@ public class Player : MonoBehaviour
 
 		InitializeRays ();
 
-		Debug.Log (Mathf.Sqrt (2 * Mathf.Abs (Physics2D.gravity.y) * jumpHeight));
-		Debug.Log (Physics2D.gravity.y);
+		initialJumpVelocity = Mathf.Sqrt (2.0f * Mathf.Abs (Physics2D.gravity.y) * jumpHeight);
+		groundCheckRaycastDistance = (collider.bounds.extents.y + skinDepth);
+		wallTouchCheckRaycastDistance = (collider.bounds.extents.x + skinDepth);
+		//Debug.Log (Mathf.Sqrt (2 * Mathf.Abs (Physics2D.gravity.y) * jumpHeight));
+		//Debug.Log (Physics2D.gravity.y);
 	}
 
 	void FixedUpdate ()
@@ -97,7 +100,7 @@ public class Player : MonoBehaviour
 	{
 		CheckInputs ();
 	}
-
+	/*
 	void OnDrawGizmos ()
 	{
 		Gizmos.color = Color.blue;
@@ -107,7 +110,7 @@ public class Player : MonoBehaviour
 		cubePosition.x += facingRight ? 0.4f : -0.4f;
 
 		Gizmos.DrawWireCube (cubePosition, cubeSize);
-	}
+	}*/
 
 	void CheckInputs ()
 	{
@@ -148,7 +151,7 @@ public class Player : MonoBehaviour
 	void MovePlayer ()
 	{// TODO: split it up into seperat methods
 		velocity = body.velocity;
-		float absVelX = Mathf.Abs (body.velocity.x);
+		float absVelX = Mathf.Abs (velocity.x);
 		// TODO this is just weird -> feels hackish
 		if (shouldMove && playerInputController.moving != 0) {
 			if (shouldRun) {
@@ -163,9 +166,9 @@ public class Player : MonoBehaviour
 			velocity.x *= playerInputController.moving;
 
 			
-			if (body.velocity.x > 0) {
+			if (velocity.x > 0) {
 				facingRight = true;
-			} else if (body.velocity.x < 0) {
+			} else if (velocity.x < 0) {
 				facingRight = false;
 			}
 
@@ -183,13 +186,13 @@ public class Player : MonoBehaviour
 				lastKnownVelocityX = 0.0f;
 			}
 			velocity.x = lastKnownVelocityX;
-			Debug.DrawLine (oldPos, body.position, Color.green, 5.0f);
+			//Debug.DrawLine (oldPos, body.position, Color.green, 5.0f);
 		}
 
 
-		if (shouldJump && !isJumping && (grounded) && !doWallJump) {
+		if (shouldJump && !isJumping && grounded && !doWallJump) {
 			isJumping = true;
-		} else if (isJumping && (grounded) && !doWallJump && airTime > 0.1f) {// TODO check if airtime value needs adjustment
+		} else if (isJumping && grounded && !doWallJump/* && airTime > 0.1f*/) {// TODO check if airtime value needs adjustment
 			isJumping = false;
 			shouldJump = false;
 			airTime = 0.0f;
@@ -213,7 +216,7 @@ public class Player : MonoBehaviour
 		if (isJumping) {
 			airTime += Time.deltaTime;
 			if (shouldJump) {// TODO move the calculation to the top so it is not calculated all the time ;)
-				velocity.y = Mathf.Sqrt (2.0f * Mathf.Abs (Physics2D.gravity.y) * jumpHeight) + Physics2D.gravity.y * airTime;
+				velocity.y = initialJumpVelocity + Physics2D.gravity.y * airTime;
 			} else if (touchesWall != 0) {
 				isJumping = false;
 				shouldJump = false;
@@ -226,32 +229,31 @@ public class Player : MonoBehaviour
 				velocity.y = velocity.y < 0 ? velocity.y : 0.0f;
 				//airTime = 0.0f;
 			}
-			Debug.DrawLine (oldPos, body.position, Color.red, 5.0f);
+			//Debug.DrawLine (oldPos, body.position, Color.red, 5.0f);
 		} else if (doWallJump) {
 			airTime += Time.deltaTime;
-			velocity.y = Mathf.Sqrt (2.0f * Mathf.Abs (Physics2D.gravity.y) * jumpHeight) + Physics2D.gravity.y * airTime;
+			velocity.y = initialJumpVelocity + Physics2D.gravity.y * airTime;
 			velocity.x = walkVelocity * wallJumpDirection;
 			transform.localScale = new Vector3 (Mathf.Abs (transform.localScale.x) * (body.velocity.x > 0 ? 1 : -1), transform.localScale.y, transform.localScale.z);
 			didMove = true;
 			lastKnownVelocityX = velocity.x;
-			Debug.DrawLine (oldPos, body.position, Color.yellow, 5.0f);
+			//Debug.DrawLine (oldPos, body.position, Color.yellow, 5.0f);
 		} else if (!grounded) {
-			Debug.DrawLine (oldPos, body.position, Color.magenta, 5.0f);
+			//Debug.DrawLine (oldPos, body.position, Color.magenta, 5.0f);
 		}
 
-
+		/*
 		if (!grounded && touchesWall != 0) {
 			//body.gravityScale = wallHangingGravityScale;
 		} else { 
 			body.gravityScale = 1.0f;
-		}
+		}*/
 
 
 		//Debug.Log (velocity.x);
 		body.velocity = velocity;
 		//lastVelocity = velocity;
-		lastVelocityX = Mathf.Abs (velocity.x);
-		oldPos = body.position;
+		//oldPos = body.position;
 	}
 
 	void DoBlink ()
@@ -270,20 +272,30 @@ public class Player : MonoBehaviour
 		float distance = blinkDistance;
 		Vector3 skinDepth = new Vector3 (transform.localScale.x / 2, 0.0f, 0.0f);
 
-
+		/*
 		foreach (Vector3 rayOffset in wallCheckRayOffsets) {
 			RaycastHit2D hit = Physics2D.Raycast ((transform.position + rayOffset + skinDepth), (facingRight ? Vector2.right : -Vector2.right), distance, blinkLayerMask);
 			if (hit.collider != null) {
 				distance = hit.distance;
 			}
-			Debug.DrawRay ((transform.position + rayOffset + skinDepth), ((facingRight ? Vector2.right : -Vector2.right) * distance), Color.blue, 1.0f);
+			//Debug.DrawRay ((transform.position + rayOffset + skinDepth), ((facingRight ? Vector2.right : -Vector2.right) * distance), Color.blue, 1.0f);
+		}
+		*/
+		Vector3 blinkRayCastOrigin = transform.position + skinDepth;
+		Vector2 blinkRayCastDirection = (facingRight ? Vector2.right : -Vector2.right);
+
+		for (int i = 0; i < numberOfWallCheckRays; i++) {
+			RaycastHit2D hit = Physics2D.Raycast ((blinkRayCastOrigin + wallCheckRayOffsets [i]), blinkRayCastDirection, distance, blinkLayerMask);
+			if (hit.collider != null) {
+				distance = hit.distance;
+			}
 		}
 
 		return Mathf.Round (distance * 10) / 10.0f;
 	}
 
 	bool isGrounded ()
-	{
+	{/*
 		// TODO remeber that this is weird for debug reasosn aka. not optimised :)
 		bool isGrounded = false;
 		foreach (Vector3 rayOffset in groundCheckRayOffsets) {
@@ -293,14 +305,24 @@ public class Player : MonoBehaviour
 					isGrounded = true;
 				}
 			}
-			Debug.DrawRay ((transform.position + rayOffset), new Vector2 (0.0f, -(collider.bounds.extents.y + 0.1f)), Color.red);
+			//Debug.DrawRay ((transform.position + rayOffset), new Vector2 (0.0f, -(collider.bounds.extents.y + 0.1f)), Color.red);
 		}
 
 		if (isGrounded) {
 			lastGroundedLevel = Mathf.Floor (transform.position.y);
 		}
+		*/
 
-		return isGrounded;
+
+		for (int i = 0; i < numberOfGroundCheckRays; i++) {
+			RaycastHit2D hit = Physics2D.Raycast ((transform.position + groundCheckRayOffsets [i]), -Vector2.up, groundCheckRaycastDistance, PlatformLayerMask);
+			if (hit.collider != null) {
+				lastGroundedLevel = Mathf.Floor (transform.position.y);
+				return true;
+			}
+		}
+        
+		return false;
 	}
 
 	int isTouchingWall ()
@@ -310,34 +332,30 @@ public class Player : MonoBehaviour
 
 	bool isTouchingRightWall ()
 	{
-		// TODO remeber that this is weird for debug reasosn aka. not optimised :)
-		bool isTouchingRightWall = false;
-		foreach (Vector3 rayOffset in wallCheckRayOffsets) {
-			if (!isTouchingRightWall) {
-				RaycastHit2D hit = Physics2D.Raycast ((transform.position + rayOffset), Vector2.right, (collider.bounds.extents.x + 0.1f), PlatformLayerMask);
-				if (hit.collider != null) {
-					isTouchingRightWall = true;
-				}
+
+		for (int i = 0; i < numberOfWallCheckRays; i++) {
+			RaycastHit2D hit = Physics2D.Raycast ((transform.position + wallCheckRayOffsets [i]), Vector2.right, wallTouchCheckRaycastDistance, PlatformLayerMask);
+			if (hit.collider != null) {
+				return true;
 			}
-			Debug.DrawRay ((transform.position + rayOffset), new Vector2 ((collider.bounds.extents.x + 0.1f), 0.0f), Color.green);
+			//Debug.DrawRay ((transform.position + wallCheckRayOffsets [i]), new Vector2 ((collider.bounds.extents.x + 0.1f), 0.0f), Color.green);
 		}
-		return isTouchingRightWall;
+
+		return false;
 	}
     
 	bool isTouchingLeftWall ()
 	{
-		// TODO remeber that this is weird for debug reasosn aka. not optimised :)
-		bool isTouchingLeftWall = false;
-		foreach (Vector3 rayOffset in wallCheckRayOffsets) {
-			if (!isTouchingLeftWall) {
-				RaycastHit2D hit = Physics2D.Raycast ((transform.position + rayOffset), -Vector2.right, (collider.bounds.extents.x + 0.1f), PlatformLayerMask);
-				if (hit.collider != null) {
-					isTouchingLeftWall = true;
-				}
+        
+		for (int i = 0; i < numberOfWallCheckRays; i++) {
+			RaycastHit2D hit = Physics2D.Raycast ((transform.position + wallCheckRayOffsets [i]), -Vector2.right, wallTouchCheckRaycastDistance, PlatformLayerMask);
+			if (hit.collider != null) {
+				return true;
 			}
-			Debug.DrawRay ((transform.position + rayOffset), new Vector2 (-(collider.bounds.extents.x + 0.1f), 0.0f), Color.green);
+			//Debug.DrawRay ((transform.position + wallCheckRayOffsets [i]), new Vector2 (-(collider.bounds.extents.x + 0.1f), 0.0f), Color.green);
 		}
-		return isTouchingLeftWall;
+		
+		return false;
 	}
     
 	void InitializeRays ()
@@ -348,9 +366,14 @@ public class Player : MonoBehaviour
 
 	void CalculateGroundCheckRayPositions ()
 	{
+		groundCheckRayOffsets.Clear ();
+		float extentsWithoutskinDepth = skinDepth - collider.bounds.extents.x;
+		float distanceBetweenRays = (collider.bounds.size.x - 2 * skinDepth) / (numberOfGroundCheckRays - 1);
+		Vector3 currentOffset = new Vector3 (0.0f, 0.0f, 0.0f);
+
 		for (int i = 0; i < numberOfGroundCheckRays; i++) {
-			float xAxisOffset = skinDepth - collider.bounds.extents.x + i * (collider.bounds.size.x - 2 * skinDepth) / (numberOfGroundCheckRays - 1);
-			groundCheckRayOffsets.Add (new Vector3 (xAxisOffset, 0.0f, 0.0f));
+			currentOffset.x = extentsWithoutskinDepth + i * distanceBetweenRays;
+			groundCheckRayOffsets.Add (currentOffset);
 		}
 		/*
 		Debug.Log("ground check ray offsets:");
@@ -362,9 +385,14 @@ public class Player : MonoBehaviour
 	
 	void CalculateWallCheckRayPositions ()
 	{
+		wallCheckRayOffsets.Clear ();
+		float extentsWithoutskinDepth = skinDepth - collider.bounds.extents.y;
+		float distanceBetweenRays = (collider.bounds.size.y - 2 * skinDepth) / (numberOfWallCheckRays - 1);
+		Vector3 currentOffset = new Vector3 (0.0f, 0.0f, 0.0f);
+
 		for (int i = 0; i < numberOfWallCheckRays; i++) {
-			float yAxisOffset = skinDepth - collider.bounds.extents.y + i * (collider.bounds.size.y - 2 * skinDepth) / (numberOfWallCheckRays - 1);
-			wallCheckRayOffsets.Add (new Vector3 (0.0f, yAxisOffset, 0.0f));
+			currentOffset.y = extentsWithoutskinDepth + i * distanceBetweenRays;
+			wallCheckRayOffsets.Add (currentOffset);
 		}
 		/*
 		Debug.Log ("wall check ray offsets:");

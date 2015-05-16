@@ -48,21 +48,27 @@ public class BasicMovement : MonoBehaviour
 	// Update is called once per frame
 	void FixedUpdate ()
 	{
-
+		/*
+		 * to check for collisions we cast a ray skinDepth from the surface at halve the height of the enemy
+		 * when we hit nothing we are at an edge and should turn
+		 * when we hit the ground nothing happens
+		 */
 		velocity = body.velocity;
 
 		if (facingRight) {
-			groundCheckRayOrigin.x = rightRayOriginX;
+			//groundCheckRayOrigin.x = rightRayOriginX + transform.position.x;
 			groundCheckDirection = rightGroundCheckDirection;
 		} else {
-			groundCheckRayOrigin.x = leftRayOriginX;
+			//groundCheckRayOrigin.x = transform.position.x - leftRayOriginX;
 			groundCheckDirection = leftGroundCheckDirection;
 		}
 		groundCheckRayOrigin.y = transform.position.y;
+		groundCheckRayOrigin.x = transform.position.x;
 
 
 
 		RaycastHit2D groundHit = Physics2D.Raycast (groundCheckRayOrigin, groundCheckDirection, groundCheckRayLength, obstacleLayerMask);
+		Debug.DrawRay (groundCheckRayOrigin, groundCheckDirection * groundCheckRayLength, Color.red);
 
 		
 		if (groundHit.collider == null || isTouchingWall ()) {
@@ -81,6 +87,7 @@ public class BasicMovement : MonoBehaviour
 		body.velocity = velocity;
 
 	}
+
 	void CalculateWallCheckRayPositions ()
 	{
 		float skinDepthWithoutExtents = skinDepth - collider.bounds.extents.y;
@@ -101,6 +108,12 @@ public class BasicMovement : MonoBehaviour
 			RaycastHit2D hit = Physics2D.Raycast ((transform.position + wallCheckRayOffsets [i]), direction, wallCheckRaycastDistance, obstacleLayerMask);
 			if (hit.collider != null) {
 				//Debug.Log (hit.collider.name);
+				/*if (hit.collider.name == "Player") {
+					Player player = hit.collider.gameObject.GetComponent<Player> ();
+					player.TakeHit (enemy.damage);
+				} else {
+					return true;
+				}*/
 				return true;
 			}
 		}

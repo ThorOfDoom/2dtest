@@ -9,6 +9,7 @@ public class PlayerInputController : MonoBehaviour
 	public bool runToggle = false;
 	public int jumping = 0;
 	public bool blinking = false;
+	public bool attacking = false;
 
 	private Dictionary<string, string> keyBindings;
 	// Use this for initialization
@@ -46,12 +47,19 @@ public class PlayerInputController : MonoBehaviour
 		if (Input.GetKeyUp (keyBindings ["jump"]) || Input.GetKeyUp (keyBindings ["jumpAlt"])) {
 			jumping = -1;
 		}
-
+		
 		
 		if (Input.GetKeyDown (keyBindings ["blink"]) || Input.GetKeyDown (keyBindings ["blinkAlt"])) {
 			blinking = true;
 		} else {
 			blinking = false;
+		}
+		
+		
+		if (Input.GetKey (keyBindings ["attack"]) || Input.GetKey (keyBindings ["attackAlt"])) {
+			attacking = true;
+		} else {
+			attacking = false;
 		}
 	}
 

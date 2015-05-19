@@ -1,6 +1,7 @@
 ﻿using UnityEngine;
 using System.Collections;
 using System.Collections.Generic;
+using System.Linq;
 
 
 /*
@@ -36,10 +37,13 @@ public class Player : MonoBehaviour
 	public float healthPoints;
 	public float hitImmunityTime;
 	public Vector2 knockBackDistance;
+	public LayerMask enemyLayerMask;
 
 	PlayerInputController playerInputController;
 	Rigidbody2D body;
 	BoxCollider2D collider;
+	Animator anim;
+	PlayerAttack playerAttack;
 
 	private bool shouldMove = false;
 	private bool shouldRun = false;
@@ -71,6 +75,9 @@ public class Player : MonoBehaviour
 	private Vector2 knockBackForce;
 	private float knockBackAirTime = 0.0f;
 	private Vector2 knockBackVelocity = new Vector2 ();
+	private bool shouldAttack = false;
+	private float lastAttackTime;
+	private Dictionary<int, float> hitEnemies = new Dictionary<int, float> ();
 
 	// debug
 	public float lastVelocityX;
@@ -83,8 +90,11 @@ public class Player : MonoBehaviour
 		playerInputController = GetComponent<PlayerInputController> ();
 		body = GetComponent<Rigidbody2D> ();
 		collider = GetComponent<BoxCollider2D> ();
-
+		anim = GetComponent<Animator> ();
+		playerAttack = GetComponent<PlayerAttack> ();
+		
 		lastBlinkTime = Time.time - blinkCoolDown;
+		lastAttackTime = Time.time - lastAttackTime;
 
 		InitializeRays ();
 
@@ -111,6 +121,12 @@ public class Player : MonoBehaviour
 		} else {
 			MovePlayer ();
 		}
+
+		if (shouldAttack) {
+			Attack ();
+		}
+		UpdateHitEnemies ();
+
 		oldPos = body.position;
 	}
     
@@ -130,6 +146,49 @@ public class Player : MonoBehaviour
 		Gizmos.DrawWireCube (cubePosition, cubeSize);
 	}*/
 	
+	void CheckInputs ()
+	{
+		//check if we should move (left/right)
+		if (playerInputController.moving != 0) {
+			shouldMove = true;
+		} else {
+			shouldMove = false;
+		}
+		
+		if ((playerInputController.running && shouldMove) || playerInputController.runToggle) {
+			shouldRun = true;
+		} else {
+			shouldRun = false;
+		}
+		
+		if (playerInputController.jumping == 1) {
+			if (jumpFinished && grounded) {
+				shouldJump = true;
+				jumpFinished = false;
+			} else {
+				jumpKeyPressed = true;
+			}
+		}
+		
+		if (playerInputController.jumping == -1) {
+			shouldJump = false;
+			jumpFinished = true;
+			jumpKeyPressed = false;
+		}
+		
+		if (playerInputController.blinking && ((lastBlinkTime + blinkCoolDown) < Time.time)) {
+			shouldBlink = true;
+			lastBlinkTime = Time.time;
+		}
+
+		if (playerInputController.attacking) {
+			anim.SetBool ("doHit", true);
+			shouldAttack = true;
+		} else {
+			shouldAttack = false;
+			anim.SetBool ("doHit", false);
+		}
+	}
 
 	void OnCollisionStay2D (Collision2D coll)
 	{
@@ -146,7 +205,7 @@ public class Player : MonoBehaviour
 			} else {
 				knockBackDirection = -1;
 			}
-			Debug.Log (transform.position.y - collider.bounds.extents.y + " | " + coll.transform.position.y + coll.collider.bounds.extents.y);
+			//Debug.Log (transform.position.y - collider.bounds.extents.y + " | " + coll.transform.position.y + coll.collider.bounds.extents.y);
 
 			if ((transform.position.y - collider.bounds.extents.y) > (coll.transform.position.y + coll.collider.bounds.extents.y)) {
 				knockBackDirection = 0;
@@ -154,11 +213,37 @@ public class Player : MonoBehaviour
 		}
 	}
 
+	void Attack ()
+	{
+		//anim.SetBool ("doHit", true);
+		RaycastHit2D hit = playerAttack.DoAttack ();
+		if (hit.collider != null && !hitEnemies.ContainsKey (hit.collider.GetInstanceID ())) {
+			Enemy enemy = hit.collider.GetComponent<Enemy> ();
+
+			enemy.TakeHit (playerAttack.GetWeaponStats ().damage, hit.point.x);
+			if (enemy.health > 0.0f) {
+				hitEnemies.Add (hit.collider.GetInstanceID (), Time.time);
+			} else {
+				Debug.Log ("it's gone");
+			}
+		}
+	}
+
+	void UpdateHitEnemies ()
+	{
+		if (hitEnemies.Count != 0) {
+			KeyValuePair<int, float>[] itemsToRemove = hitEnemies.Where (f => f.Value < Time.time + playerAttack.GetWeaponStats ().attackSpeed).ToArray ();
+			for (int i = 0; i < itemsToRemove.Length; i++) {
+				hitEnemies.Remove (itemsToRemove [i].Key);
+			}
+		}
+	}
+
 	public void TakeHit (float damage)
 	{
-		Debug.Log ("hit for " + damage + " points of damage");
+		//Debug.Log ("hit for " + damage + " points of damage");
 		currentHealthPoints -= damage;
-		Debug.Log (currentHealthPoints + " Health Points remaining");
+		//Debug.Log (currentHealthPoints + " Health Points remaining");
 		if (currentHealthPoints <= 0) {
 			Debug.Log ("you dead! :(");
 			Die ();
@@ -173,41 +258,6 @@ public class Player : MonoBehaviour
 		knockBack = false;
 	}
 
-	void CheckInputs ()
-	{
-		//check if we should move (left/right)
-		if (playerInputController.moving != 0) {
-			shouldMove = true;
-		} else {
-			shouldMove = false;
-		}
-
-		if ((playerInputController.running && shouldMove) || playerInputController.runToggle) {
-			shouldRun = true;
-		} else {
-			shouldRun = false;
-		}
-
-		if (playerInputController.jumping == 1) {
-			if (jumpFinished && grounded) {
-				shouldJump = true;
-				jumpFinished = false;
-			} else {
-				jumpKeyPressed = true;
-			}
-		}
-
-		if (playerInputController.jumping == -1) {
-			shouldJump = false;
-			jumpFinished = true;
-			jumpKeyPressed = false;
-		}
-
-		if (playerInputController.blinking && ((lastBlinkTime + blinkCoolDown) < Time.time)) {
-			shouldBlink = true;
-			lastBlinkTime = Time.time;
-		}
-	}
 
 	void KnockBack ()
 	{

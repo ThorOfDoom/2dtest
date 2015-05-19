@@ -4,4 +4,5 @@ moveRight=right=d
 run=left shift=left shift
 runToggle=right shift=right shift
 jump=up=space
-blink=w=b
+blink=w=w
+attack=s=s

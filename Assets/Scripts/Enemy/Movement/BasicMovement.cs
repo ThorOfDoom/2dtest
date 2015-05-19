@@ -9,6 +9,8 @@ public class BasicMovement : MonoBehaviour
 	public bool facingRight = true;
 	public float skinDepth;
 	public int numberOfWallCheckRays;
+	public float knockBackDuration;
+	public float knockBackDistance;
 
 
 	Rigidbody2D body;
@@ -25,6 +27,15 @@ public class BasicMovement : MonoBehaviour
 	private Vector2 groundCheckRayOrigin;
 	private Vector2 groundCheckDirection;
 	private float wallCheckRaycastDistance;
+	private bool knockBack = false;
+	private bool doKnockBack = false;
+	private float knockBackTime;
+	private int knockBackDiretion;
+	private float knockBackVelocity;
+	private bool movingBackwards = false;
+	private bool flippedLastFrame = false;
+	public bool falling = true;
+	private float airTime;
     
 
 
@@ -41,6 +52,7 @@ public class BasicMovement : MonoBehaviour
 		leftRayOriginX = collider.bounds.min.x + skinDepth;
 		groundCheckRayOrigin = new Vector2 (0.0f, 0.0f);
 		wallCheckRaycastDistance = (collider.bounds.extents.x + 0.1f);
+		knockBackVelocity = Mathf.Sqrt (2.0f * Mathf.Abs (Physics2D.gravity.y) * knockBackDistance);
 		//Debug.Log (Mathf.Sin (45 * (Mathf.PI / 180)));
 		CalculateWallCheckRayPositions ();
 	}
@@ -55,37 +67,91 @@ public class BasicMovement : MonoBehaviour
 		 */
 		velocity = body.velocity;
 
-		if (facingRight) {
-			//groundCheckRayOrigin.x = rightRayOriginX + transform.position.x;
-			groundCheckDirection = rightGroundCheckDirection;
-		} else {
-			//groundCheckRayOrigin.x = transform.position.x - leftRayOriginX;
-			groundCheckDirection = leftGroundCheckDirection;
-		}
-		groundCheckRayOrigin.y = transform.position.y;
-		groundCheckRayOrigin.x = transform.position.x;
-
-
-
-		RaycastHit2D groundHit = Physics2D.Raycast (groundCheckRayOrigin, groundCheckDirection, groundCheckRayLength, obstacleLayerMask);
-		Debug.DrawRay (groundCheckRayOrigin, groundCheckDirection * groundCheckRayLength, Color.red);
-
-		
-		if (groundHit.collider == null || isTouchingWall ()) {
-			//Debug.Log (groundHit.collider.name);
-			if (facingRight) {
-				facingRight = false;
-
+		if (!falling) {
+			groundCheckDirection = facingRight ? rightGroundCheckDirection : leftGroundCheckDirection;
+			groundCheckRayOrigin.y = transform.position.y;
+			groundCheckRayOrigin.x = transform.position.x;
+			
+			
+			
+			RaycastHit2D groundHit = Physics2D.Raycast (groundCheckRayOrigin, groundCheckDirection, groundCheckRayLength, obstacleLayerMask);
+			Debug.DrawRay (groundCheckRayOrigin, groundCheckDirection * groundCheckRayLength, Color.red);
+			
+			bool touchesWall = false;
+			if (groundHit.collider == null || (touchesWall = isTouchingWall ())) {
+				//Debug.Log (groundHit.collider.name);
+				if (!touchesWall && flippedLastFrame) {
+					falling = true;
+				} else {
+					Flip ();
+					
+					flippedLastFrame = true;
+				}
 			} else {
-				facingRight = true;
+				flippedLastFrame = false;
 			}
-			transform.localScale = new Vector3 (Mathf.Abs (transform.localScale.x) * (facingRight ? 1 : -1), transform.localScale.y, transform.localScale.z);
-		} 
+		} else {
+			RaycastHit2D groundHit = Physics2D.Raycast (new Vector2 (collider.bounds.center.x, collider.bounds.min.y + 0.1f), -Vector2.up, 0.6f, obstacleLayerMask);
+			Debug.DrawRay (new Vector2 (collider.bounds.center.x, collider.bounds.min.y + 0.1f), -Vector2.up * 0.6f, Color.red);
 
-		velocity.x = enemy.movementSpeed * transform.localScale.x;
+			if (groundHit.collider != null) {
+				airTime = 0.0f;
+				falling = false;
+				velocity.y = 0.0f;
+				body.transform.position = body.transform.position - new Vector3 (0.0f, groundHit.distance - 0.1f, 0.0f);
+			} else {
+				airTime += Time.deltaTime;
+				velocity.y = Physics2D.gravity.y * airTime;
+			}
+		}
+
+		if (knockBack) {
+			doKnockBack = true;
+			if (movingBackwards) {
+				//transform.localScale = new Vector3 (Mathf.Abs (transform.localScale.x) * (facingRight ? 1 : -1), transform.localScale.y, transform.localScale.z);
+			}
+		} else if (doKnockBack) {
+			doKnockBack = false;
+			if (movingBackwards) {
+				ToggleFacing ();
+			}
+		}
+
+		if (doKnockBack) {
+			knockBackTime += Time.deltaTime;
+			if (knockBackDuration > knockBackTime) {
+				velocity.x = (knockBackVelocity + Physics2D.gravity.y * knockBackTime) * knockBackDiretion;
+			} else {
+				knockBack = false;
+				knockBackTime = 0.0f;
+			}
+		} else if (!falling) {
+			velocity.x = enemy.movementSpeed * transform.localScale.x;
+		}
 		
 		body.velocity = velocity;
 
+	}
+
+	public void KnockBack (int direction)
+	{
+		knockBackDiretion = direction;
+		knockBack = true;
+		if ((facingRight && direction == -1) || (!facingRight && direction == 1)) {
+			movingBackwards = true;
+			ToggleFacing ();
+		}
+	}
+
+	void ToggleFacing ()
+	{
+		facingRight = facingRight ? false : true;
+	}
+
+	void Flip ()
+	{
+		ToggleFacing ();
+		transform.localScale = new Vector3 (Mathf.Abs (transform.localScale.x) * (facingRight ? 1 : -1), transform.localScale.y, transform.localScale.z);
 	}
 
 	void CalculateWallCheckRayPositions ()

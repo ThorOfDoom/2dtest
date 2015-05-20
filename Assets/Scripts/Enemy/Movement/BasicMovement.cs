@@ -4,7 +4,13 @@ using System.Collections.Generic;
 
 public class BasicMovement : MonoBehaviour
 {
-
+	/*
+	 * refactor methods that calculate rays to be external and flexible
+	 * make them enemies obey gravity :O
+	 * adjust attack
+	 * bug fixes!! 
+	 * refactor some more
+	 */
 	public LayerMask obstacleLayerMask;
 	public bool facingRight = true;
 	public float skinDepth;

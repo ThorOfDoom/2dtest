@@ -1,4 +1,5 @@
 ﻿using UnityEngine;
+using UnityEngine.UI;
 using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
@@ -35,9 +36,12 @@ public class Player : MonoBehaviour
 	public LayerMask blinkLayerMask;
 	public float blinkCoolDown;
 	public float healthPoints;
+	public Slider healthBar;
 	public float hitImmunityTime;
 	public Vector2 knockBackDistance;
 	public LayerMask enemyLayerMask;
+	public Slider blinkBar;
+	public GameObject levelboundsObj;
 
 	PlayerInputController playerInputController;
 	Rigidbody2D body;
@@ -78,6 +82,7 @@ public class Player : MonoBehaviour
 	private bool shouldAttack = false;
 	private float lastAttackTime;
 	private Dictionary<int, float> hitEnemies = new Dictionary<int, float> ();
+	private Bounds levelBounds;
 
 	// debug
 	public float lastVelocityX;
@@ -92,7 +97,9 @@ public class Player : MonoBehaviour
 		collider = GetComponent<BoxCollider2D> ();
 		anim = GetComponent<Animator> ();
 		playerAttack = GetComponent<PlayerAttack> ();
-		
+		levelBounds = levelboundsObj.GetComponent<BoxCollider2D> ().bounds;
+
+
 		lastBlinkTime = Time.time - blinkCoolDown;
 		lastAttackTime = Time.time - lastAttackTime;
 
@@ -105,12 +112,17 @@ public class Player : MonoBehaviour
 		lastHitTime = Time.time;
 		startingPosition = transform.position;
 		currentHealthPoints = healthPoints;
+		healthBar.maxValue = healthPoints;
+		healthBar.value = currentHealthPoints;
+		blinkBar.value = 1.0f;
 		//Debug.Log (Mathf.Sqrt (2 * Mathf.Abs (Physics2D.gravity.y) * jumpHeight));
 		//Debug.Log (Physics2D.gravity.y);
 	}
 
 	void FixedUpdate ()
 	{
+		CheckIfOutsideBounds ();
+
 		grounded = isGrounded ();
 		touchesWall = !grounded ? isTouchingWall () : 0;
 
@@ -126,6 +138,11 @@ public class Player : MonoBehaviour
 			Attack ();
 		}
 		UpdateHitEnemies ();
+
+		float timeSinceBlink = Time.time - lastBlinkTime;
+		if (timeSinceBlink < blinkCoolDown) {
+			blinkBar.value = 1 / blinkCoolDown * timeSinceBlink;
+		}
 
 		oldPos = body.position;
 	}
@@ -179,6 +196,7 @@ public class Player : MonoBehaviour
 		if (playerInputController.blinking && ((lastBlinkTime + blinkCoolDown) < Time.time)) {
 			shouldBlink = true;
 			lastBlinkTime = Time.time;
+			blinkBar.value = 0.0f;
 		}
 
 		if (playerInputController.attacking) {
@@ -242,7 +260,7 @@ public class Player : MonoBehaviour
 	public void TakeHit (float damage)
 	{
 		//Debug.Log ("hit for " + damage + " points of damage");
-		currentHealthPoints -= damage;
+		ChangeHealth (-damage);
 		//Debug.Log (currentHealthPoints + " Health Points remaining");
 		if (currentHealthPoints <= 0) {
 			Debug.Log ("you dead! :(");
@@ -250,11 +268,21 @@ public class Player : MonoBehaviour
 		}
 	}
 
+	void ChangeHealth (float damage)
+	{
+		SetHealth (currentHealthPoints + damage);
+	}
+
+	void SetHealth (float health)
+	{
+		healthBar.value = currentHealthPoints = health;
+	}
+
 	void Die ()
 	{
 		transform.position = startingPosition;
 		body.velocity = new Vector2 (0.0f, 0.0f);
-		currentHealthPoints = healthPoints;
+		SetHealth (healthPoints);
 		knockBack = false;
 	}
 
@@ -533,7 +561,12 @@ public class Player : MonoBehaviour
 		*/
 	}
 
-
+	void CheckIfOutsideBounds ()
+	{
+		if ((collider.bounds.max.y + 3.0f) < levelBounds.min.y) {
+			Die ();
+		}
+	}
 
 
 

@@ -104,6 +104,7 @@ public class Player : MonoBehaviour
 		InitializeRays ();
 
 		initialJumpVelocity = Mathf.Sqrt (2.0f * Mathf.Abs (Physics2D.gravity.y) * jumpHeight);
+
 		knockBackForce = new Vector2 (Mathf.Sqrt (2.0f * Mathf.Abs (Physics2D.gravity.y) * knockBackDistance.x), Mathf.Sqrt (2.0f * Mathf.Abs (Physics2D.gravity.y) * knockBackDistance.y));
 		groundCheckRaycastDistance = (collider.bounds.extents.y + skinDepth);
 		wallTouchCheckRaycastDistance = (collider.bounds.extents.x + skinDepth);
@@ -180,6 +181,7 @@ public class Player : MonoBehaviour
 			if (jumpFinished && grounded) {
 				shouldJump = true;
 				jumpFinished = false;
+				Debug.Log ("JUMP JUMP JUMP");
 			} else {
 				jumpKeyPressed = true;
 			}
@@ -198,7 +200,9 @@ public class Player : MonoBehaviour
 		}
 
 		if (playerInputController.attacking) {
+
 			anim.SetBool ("doHit", true);
+
 			shouldAttack = true;
 		} else {
 			shouldAttack = false;
@@ -231,7 +235,6 @@ public class Player : MonoBehaviour
 
 	void Attack ()
 	{
-		//anim.SetBool ("doHit", true);
 		RaycastHit2D hit = playerAttack.DoAttack ();
 		if (hit.collider != null && !hitEnemies.ContainsKey (hit.collider.GetInstanceID ())) {
 			Enemy enemy = hit.collider.GetComponent<Enemy> ();
@@ -239,8 +242,6 @@ public class Player : MonoBehaviour
 			enemy.TakeHit (playerAttack.GetWeaponStats ().damage, hit.point.x);
 			if (enemy.health > 0.0f) {
 				hitEnemies.Add (hit.collider.GetInstanceID (), Time.time);
-			} else {
-				Debug.Log ("it's gone");
 			}
 		}
 	}
@@ -310,6 +311,7 @@ public class Player : MonoBehaviour
 		float absVelX = Mathf.Abs (velocity.x);
 		// TODO this is just weird -> feels hackish
 		if (shouldMove && playerInputController.moving != 0) {
+
 			if (shouldRun) {
 				if ((absVelX + runAcceleration) <= runVelocity) {
 					velocity.x = absVelX + runAcceleration;
@@ -348,7 +350,7 @@ public class Player : MonoBehaviour
 
 		if (shouldJump && !isJumping && grounded && !doWallJump) {
 			isJumping = true;
-		} else if (isJumping && grounded && !doWallJump/* && airTime > 0.1f*/) {// TODO check if airtime value needs adjustment
+		} else if (isJumping && grounded && !doWallJump) {
 			isJumping = false;
 			shouldJump = false;
 			airTime = 0.0f;
@@ -371,26 +373,24 @@ public class Player : MonoBehaviour
 
 		if (isJumping) {
 			airTime += Time.deltaTime;
-			if (shouldJump) {// TODO move the calculation to the top so it is not calculated all the time ;)
+			if (shouldJump) {
 				velocity.y = initialJumpVelocity + Physics2D.gravity.y * airTime;
 			} else if (touchesWall != 0) {
 				isJumping = false;
 				shouldJump = false;
 				airTime = 0.0f;
-				//velocity.y = 0.0f;
 			} else {
-				//velocity.y = Physics2D.gravity.y * (1 / maxAirTime * airTime);
-				//isJumping = false;
-				//shouldJump = false;
 				velocity.y = velocity.y < 0 ? velocity.y : 0.0f;
-				//airTime = 0.0f;
 			}
 			Debug.DrawLine (oldPos, body.position, Color.red, 5.0f);
 		} else if (doWallJump) {
 			airTime += Time.deltaTime;
 			velocity.y = initialJumpVelocity + Physics2D.gravity.y * airTime;
 			velocity.x = walkVelocity * wallJumpDirection;
-			transform.localScale = new Vector3 (Mathf.Abs (transform.localScale.x) * (body.velocity.x > 0 ? 1 : -1), transform.localScale.y, transform.localScale.z);
+			transform.localScale = new Vector3 (
+				Mathf.Abs (transform.localScale.x) * (body.velocity.x > 0 ? 1 : -1), 
+				transform.localScale.y, 
+				transform.localScale.z);
 			didMove = true;
 			lastKnownVelocityX = velocity.x;
 			Debug.DrawLine (oldPos, body.position, Color.yellow, 5.0f);
@@ -428,21 +428,15 @@ public class Player : MonoBehaviour
 	{
 		float distance = blinkDistance;
 		Vector3 skinDepth = new Vector3 (transform.localScale.x / 2, 0.0f, 0.0f);
-
-		/*
-		foreach (Vector3 rayOffset in wallCheckRayOffsets) {
-			RaycastHit2D hit = Physics2D.Raycast ((transform.position + rayOffset + skinDepth), (facingRight ? Vector2.right : -Vector2.right), distance, blinkLayerMask);
-			if (hit.collider != null) {
-				distance = hit.distance;
-			}
-			//Debug.DrawRay ((transform.position + rayOffset + skinDepth), ((facingRight ? Vector2.right : -Vector2.right) * distance), Color.blue, 1.0f);
-		}
-		*/
 		Vector3 blinkRayCastOrigin = transform.position + skinDepth;
 		Vector2 blinkRayCastDirection = (facingRight ? Vector2.right : -Vector2.right);
 
 		for (int i = 0; i < numberOfWallCheckRays; i++) {
-			RaycastHit2D hit = Physics2D.Raycast ((blinkRayCastOrigin + wallCheckRayOffsets [i]), blinkRayCastDirection, distance, blinkLayerMask);
+			RaycastHit2D hit = Physics2D.Raycast (
+				(blinkRayCastOrigin + wallCheckRayOffsets [i]), 
+				blinkRayCastDirection, 
+				distance, 
+				blinkLayerMask);
 			if (hit.collider != null) {
 				distance = hit.distance;
 			}

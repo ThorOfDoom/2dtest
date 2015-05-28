@@ -43,8 +43,6 @@ public class PlayerAttack : MonoBehaviour
 		var direction = heading / distance;
 		Debug.DrawRay (weaponStats.weaponBase.transform.position, direction, Color.cyan, 1.0f);
 
-		//Debug.Log (weapon.transform.position.z);
-
 		return Physics2D.Raycast (weaponStats.weaponBase.transform.position, direction, distance, enemyLayer);
 	}
 }

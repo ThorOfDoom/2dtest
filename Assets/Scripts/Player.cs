@@ -41,7 +41,7 @@ public class Player : MonoBehaviour
 	public Vector2 knockBackDistance;
 	public LayerMask enemyLayerMask;
 	public Slider blinkBar;
-	public GameObject levelboundsObj;
+	public BoxCollider2D levelboundsCollider;
 
 	PlayerInputController playerInputController;
 	Rigidbody2D body;
@@ -82,7 +82,6 @@ public class Player : MonoBehaviour
 	private bool shouldAttack = false;
 	private float lastAttackTime;
 	private Dictionary<int, float> hitEnemies = new Dictionary<int, float> ();
-	private Bounds levelBounds;
 
 	// debug
 	public float lastVelocityX;
@@ -97,7 +96,6 @@ public class Player : MonoBehaviour
 		collider = GetComponent<BoxCollider2D> ();
 		anim = GetComponent<Animator> ();
 		playerAttack = GetComponent<PlayerAttack> ();
-		levelBounds = levelboundsObj.GetComponent<BoxCollider2D> ().bounds;
 
 
 		lastBlinkTime = Time.time - blinkCoolDown;
@@ -563,7 +561,7 @@ public class Player : MonoBehaviour
 
 	void CheckIfOutsideBounds ()
 	{
-		if ((collider.bounds.max.y + 3.0f) < levelBounds.min.y) {
+		if ((collider.bounds.max.y + 3.0f) < (-levelboundsCollider.size.y / 2 + levelboundsCollider.offset.y)) {
 			Die ();
 		}
 	}

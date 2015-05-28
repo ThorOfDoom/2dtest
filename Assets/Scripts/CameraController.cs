@@ -18,8 +18,8 @@ public class CameraController : MonoBehaviour
 
 	void Start ()
 	{
-		_min = bounds.bounds.min;
-		_max = bounds.bounds.max;
+		//_min = bounds.bounds.min;
+		//_max = bounds.bounds.max;
 		_playerTransform = player.GetComponent<Transform> ();
 		_player = player.GetComponent<Player> ();
 		_cameraOrthographicWidth = Camera.main.orthographicSize * Camera.main.aspect;
@@ -29,7 +29,9 @@ public class CameraController : MonoBehaviour
 	void Update ()
 	{
 		//DrawLeash ();
-
+		
+		_min = bounds.bounds.min;
+		_max = bounds.bounds.max;
 		float x = CheckXAxis ();
 		float y = CheckYAxis ();
 

@@ -5,33 +5,21 @@ using System.Collections.Generic;
 using System.Linq;
 
 
-/*
- * TODO:
- * refactor & optimize! http://www.gamasutra.com/blogs/AmirHFassihi/20130828/199134/0__60_fps_in_14_days_What_we_learned_trying_to_optimize_our_game_using_Unity3D.php
- * go over the enemy again
- */
-
 [RequireComponent (typeof(PlayerInputController))]
 public class Player : MonoBehaviour
 {
 	public float walkVelocity;
 	public float runVelocity;
 	public float runAcceleration;
-	public Transform groundCheck;
 	public LayerMask PlatformLayerMask;
-	public bool grounded = false;
-	public float jumpStrength = 10.0f;
-	public float maxAirTime = 0.5f;
-	public float jumpHeight = 3.0f;
-	public float slideReductionMultiplier = 0.93f;
-	public float airSlideReductionMultiplier = 0.80f;
-	public int numberOfGroundCheckRays = 3;
-	public int numberOfWallCheckRays = 3;
-	public float skinDepth = 0.05f;
-	public int touchesWall = 0;
-	public float wallHangingGravityScale = 0.3f;
-	public float wallJumpTime = 0.4f;
-	public float lastGroundedLevel;
+	public float jumpHeight;
+	public float slideReductionMultiplier;
+	public float airSlideReductionMultiplier;
+	public int numberOfGroundCheckRays;
+	public int numberOfWallCheckRays;
+	public float skinDepth;
+	public int touchesWall;
+	public float wallJumpTime;
 	public float blinkDistance;
 	public LayerMask blinkLayerMask;
 	public float blinkCoolDown;
@@ -41,82 +29,81 @@ public class Player : MonoBehaviour
 	public Vector2 knockBackDistance;
 	public LayerMask enemyLayerMask;
 	public Slider blinkBar;
+	[HideInInspector]
+	public float
+		lastGroundedLevel;
+
 	public BoxCollider2D levelboundsCollider;
 
 	PlayerInputController playerInputController;
 	Rigidbody2D body;
-	BoxCollider2D collider;
+	BoxCollider2D clldr;
 	Animator anim;
 	PlayerAttack playerAttack;
 
-	private bool shouldMove = false;
-	private bool shouldRun = false;
-	private Vector2 velocity = new Vector2 ();
-	private bool shouldJump = false;
-	private float groundRadius = 0.1f;
-	private float airTime = 0.0f;
-	private bool isJumping = false;
-	private bool jumpFinished = true;
-	private bool didMove = false;
-	private float lastKnownVelocityX;
-	private List<Vector3> groundCheckRayOffsets = new List<Vector3> ();
-	private List<Vector3> wallCheckRayOffsets = new List<Vector3> ();
-	public bool doWallJump = false;
-	private int wallJumpDirection = 0;
-	private bool jumpKeyPressed = false;
-	private bool shouldBlink = false;
-	private bool facingRight = true;
-	private float lastBlinkTime;
-	private float initialJumpVelocity;
-	private float wallTouchCheckRaycastDistance;
-	private float groundCheckRaycastDistance;
-	private float lastHitTime;
-	private Vector3 startingPosition;
-	private float currentHealthPoints;
-	private bool knockBack = false;
-	private float knockBackTime;
-	private int knockBackDirection;
-	private Vector2 knockBackForce;
-	private float knockBackAirTime = 0.0f;
-	private Vector2 knockBackVelocity = new Vector2 ();
-	private bool shouldAttack = false;
-	private float lastAttackTime;
-	private Dictionary<int, float> hitEnemies = new Dictionary<int, float> ();
+	bool shouldMove = false;
+	bool shouldRun = false;
+	Vector2 velocity = new Vector2 ();
+	bool grounded = false;
+	bool shouldJump = false;
+	float airTime = 0.0f;
+	bool isJumping = false;
+	bool jumpFinished = true;
+	bool didMove = false;
+	float lastKnownVelocityX;
+	List<Vector3> groundCheckRayOffsets = new List<Vector3> ();
+	List<Vector3> wallCheckRayOffsets = new List<Vector3> ();
+	bool doWallJump = false;
+	int wallJumpDirection = 0;
+	bool jumpKeyPressed = false;
+	bool shouldBlink = false;
+	bool facingRight = true;
+	float lastBlinkTime;
+	float initialJumpVelocity;
+	float wallTouchCheckRaycastDistance;
+	float groundCheckRaycastDistance;
+	float lastHitTime;
+	Vector3 startingPosition;
+	float currentHealthPoints;
+	bool knockBack = false;
+	int knockBackDirection;
+	Vector2 knockBackForce;
+	float knockBackAirTime = 0.0f;
+	Vector2 knockBackVelocity = new Vector2 ();
+	bool shouldAttack = false;
+	float lastAttackTime;
+	Dictionary<int, float> hitEnemies = new Dictionary<int, float> ();
 
 	// debug
-	public float lastVelocityX;
-	private Vector2 oldPos;
-	private int lastWallTouch = 0;
+	Vector2 oldPos;
 
-	// Use this for initialization
+
 	void Start ()
 	{
 		playerInputController = GetComponent<PlayerInputController> ();
 		body = GetComponent<Rigidbody2D> ();
-		collider = GetComponent<BoxCollider2D> ();
+		clldr = GetComponent<BoxCollider2D> ();
 		anim = GetComponent<Animator> ();
 		playerAttack = GetComponent<PlayerAttack> ();
 
-
+		touchesWall = 0;
 		lastBlinkTime = Time.time - blinkCoolDown;
 		lastAttackTime = Time.time - lastAttackTime;
-
-		InitializeRays ();
-
 		initialJumpVelocity = Mathf.Sqrt (2.0f * Mathf.Abs (Physics2D.gravity.y) * jumpHeight);
-
-		knockBackForce = new Vector2 (Mathf.Sqrt (2.0f * Mathf.Abs (Physics2D.gravity.y) * knockBackDistance.x), Mathf.Sqrt (2.0f * Mathf.Abs (Physics2D.gravity.y) * knockBackDistance.y));
-		groundCheckRaycastDistance = (collider.bounds.extents.y + skinDepth);
-		wallTouchCheckRaycastDistance = (collider.bounds.extents.x + skinDepth);
+		knockBackForce = new Vector2 (Mathf.Sqrt (2.0f * Mathf.Abs (Physics2D.gravity.y) * knockBackDistance.x),
+		                              Mathf.Sqrt (2.0f * Mathf.Abs (Physics2D.gravity.y) * knockBackDistance.y));
+		groundCheckRaycastDistance = (clldr.bounds.extents.y + skinDepth);
+		wallTouchCheckRaycastDistance = (clldr.bounds.extents.x + skinDepth);
 		lastHitTime = Time.time;
 		startingPosition = transform.position;
 		currentHealthPoints = healthPoints;
 		healthBar.maxValue = healthPoints;
 		healthBar.value = currentHealthPoints;
 		blinkBar.value = 1.0f;
-		//Debug.Log (Mathf.Sqrt (2 * Mathf.Abs (Physics2D.gravity.y) * jumpHeight));
-		//Debug.Log (Physics2D.gravity.y);
+
+		InitializeRays ();
 	}
+
 
 	void FixedUpdate ()
 	{
@@ -146,25 +133,15 @@ public class Player : MonoBehaviour
 		oldPos = body.position;
 	}
     
+
 	void Update ()
 	{
 		CheckInputs ();
 	}
-	/*
-	void OnDrawGizmos ()
-	{
-		Gizmos.color = Color.blue;
-		Vector3 cubePosition = transform.position;
-		Vector3 cubeSize = new Vector3 (0.2f, 0.2f, 0.2f);
 
-		cubePosition.x += facingRight ? 0.4f : -0.4f;
-
-		Gizmos.DrawWireCube (cubePosition, cubeSize);
-	}*/
 	
 	void CheckInputs ()
 	{
-		//check if we should move (left/right)
 		if (playerInputController.moving != 0) {
 			shouldMove = true;
 		} else {
@@ -181,7 +158,6 @@ public class Player : MonoBehaviour
 			if (jumpFinished && grounded) {
 				shouldJump = true;
 				jumpFinished = false;
-				Debug.Log ("JUMP JUMP JUMP");
 			} else {
 				jumpKeyPressed = true;
 			}
@@ -200,22 +176,20 @@ public class Player : MonoBehaviour
 		}
 
 		if (playerInputController.attacking) {
-
-			anim.SetBool ("doHit", true);
-
 			shouldAttack = true;
+			anim.SetBool ("doHit", true);
 		} else {
 			shouldAttack = false;
 			anim.SetBool ("doHit", false);
 		}
 	}
 
+
 	void OnCollisionStay2D (Collision2D coll)
 	{
 		float hitTime = Time.time;
 
 		if ((hitTime - hitImmunityTime) > lastHitTime && coll.gameObject.tag == "Enemy") {
-			knockBackTime = Time.time;
 			knockBack = true;
 			Enemy enemy = coll.gameObject.GetComponent<Enemy> ();
 			TakeHit (enemy.damage);
@@ -225,13 +199,14 @@ public class Player : MonoBehaviour
 			} else {
 				knockBackDirection = -1;
 			}
-			//Debug.Log (transform.position.y - collider.bounds.extents.y + " | " + coll.transform.position.y + coll.collider.bounds.extents.y);
 
-			if ((transform.position.y - collider.bounds.extents.y) > (coll.transform.position.y + coll.collider.bounds.extents.y)) {
+			if ((transform.position.y - clldr.bounds.extents.y) > 
+				(coll.transform.position.y + coll.collider.bounds.extents.y)) {
 				knockBackDirection = 0;
 			}
 		}
 	}
+
 
 	void Attack ()
 	{
@@ -246,36 +221,41 @@ public class Player : MonoBehaviour
 		}
 	}
 
+
 	void UpdateHitEnemies ()
 	{
 		if (hitEnemies.Count != 0) {
-			KeyValuePair<int, float>[] itemsToRemove = hitEnemies.Where (f => f.Value < Time.time + playerAttack.GetWeaponStats ().attackSpeed).ToArray ();
+			KeyValuePair<int, float>[] itemsToRemove = 
+				hitEnemies.Where (f => f.Value < Time.time + playerAttack.GetWeaponStats ().attackSpeed).ToArray ();
+
 			for (int i = 0; i < itemsToRemove.Length; i++) {
 				hitEnemies.Remove (itemsToRemove [i].Key);
 			}
 		}
 	}
 
+
 	public void TakeHit (float damage)
 	{
-		//Debug.Log ("hit for " + damage + " points of damage");
 		ChangeHealth (-damage);
-		//Debug.Log (currentHealthPoints + " Health Points remaining");
 		if (currentHealthPoints <= 0) {
 			Debug.Log ("you dead! :(");
 			Die ();
 		}
 	}
 
+
 	void ChangeHealth (float damage)
 	{
 		SetHealth (currentHealthPoints + damage);
 	}
 
+
 	void SetHealth (float health)
 	{
 		healthBar.value = currentHealthPoints = health;
 	}
+
 
 	void Die ()
 	{
@@ -292,7 +272,7 @@ public class Player : MonoBehaviour
         
 		knockBackVelocity.x = (knockBackForce.x + Physics2D.gravity.y * knockBackAirTime);
 		knockBackVelocity.y = knockBackForce.y + Physics2D.gravity.y * knockBackAirTime;
-//		Debug.Log (knockBackVelocity);
+
 		if (knockBackVelocity.x > 0.0f) {
 			knockBackVelocity.x *= knockBackDirection;
 			body.velocity = knockBackVelocity;
@@ -301,17 +281,16 @@ public class Player : MonoBehaviour
 			knockBackAirTime = 0.0f;
 			didMove = true;
 		}
+
 		Debug.DrawLine (oldPos, body.position, Color.green, 5.0f);
 	}
 
 	void MovePlayer ()
 	{// TODO: split it up into seperat methods
 		velocity.y = body.velocity.y;
-		//velocity.x = 0.0f;
 		float absVelX = Mathf.Abs (velocity.x);
-		// TODO this is just weird -> feels hackish
+		// TODO feels hackish
 		if (shouldMove && playerInputController.moving != 0) {
-
 			if (shouldRun) {
 				if ((absVelX + runAcceleration) <= runVelocity) {
 					velocity.x = absVelX + runAcceleration;
@@ -323,19 +302,16 @@ public class Player : MonoBehaviour
 			}
 			velocity.x *= playerInputController.moving;
 
-			
 			if (velocity.x > 0) {
 				facingRight = true;
 			} else if (velocity.x < 0) {
 				facingRight = false;
 			}
 
-			transform.localScale = new Vector3 (Mathf.Abs (transform.localScale.x) * (facingRight ? 1 : -1), transform.localScale.y, transform.localScale.z);
-
-
+			transform.localScale = new Vector3 (Mathf.Abs (transform.localScale.x) * (facingRight ? 1 : -1), 
+			                                    transform.localScale.y, transform.localScale.z);
 			didMove = true;
 			lastKnownVelocityX = velocity.x;
-
 		} else if (didMove) {
 			if (Mathf.Abs (lastKnownVelocityX) > walkVelocity || !grounded) {
 				lastKnownVelocityX *= !grounded ? airSlideReductionMultiplier : slideReductionMultiplier;
@@ -346,7 +322,6 @@ public class Player : MonoBehaviour
 			velocity.x = lastKnownVelocityX;
 			Debug.DrawLine (oldPos, body.position, Color.green, 5.0f);
 		}
-
 
 		if (shouldJump && !isJumping && grounded && !doWallJump) {
 			isJumping = true;
@@ -368,8 +343,6 @@ public class Player : MonoBehaviour
 			airTime = 0.0f;
 			jumpKeyPressed = false;
 		} 
-
-
 
 		if (isJumping) {
 			airTime += Time.deltaTime;
@@ -397,32 +370,20 @@ public class Player : MonoBehaviour
 		} else if (!grounded) {
 			Debug.DrawLine (oldPos, body.position, Color.magenta, 5.0f);
 		}
-
-		/*
-		if (!grounded && touchesWall != 0) {
-			//body.gravityScale = wallHangingGravityScale;
-		} else { 
-			body.gravityScale = 1.0f;
-		}*/
-
-
-		//Debug.Log (velocity.x);
+		
 		body.velocity = velocity;
-		//lastVelocity = velocity;
-		//oldPos = body.position;
-		lastVelocityX = velocity.x;
 	}
+
 
 	void DoBlink ()
 	{
 		float _blinkDistance = CheckBlinkDistance ();
 		_blinkDistance *= (facingRight ? 1 : -1);
-		
 		transform.position += new Vector3 (_blinkDistance, 0.0f, 0.0f);
-		
 		oldPos = transform.position;
 		shouldBlink = false;
 	}
+
 
 	float CheckBlinkDistance ()
 	{
@@ -445,123 +406,95 @@ public class Player : MonoBehaviour
 		return Mathf.Round (distance * 10) / 10.0f;
 	}
 
+
 	bool isGrounded ()
-	{/*
-		// TODO remeber that this is weird for debug reasosn aka. not optimised :)
-		bool isGrounded = false;
-		foreach (Vector3 rayOffset in groundCheckRayOffsets) {
-			if (!isGrounded) {
-				RaycastHit2D hit = Physics2D.Raycast ((transform.position + rayOffset), -Vector2.up, (collider.bounds.extents.y + 0.1f), PlatformLayerMask);
-				if (hit.collider != null) {
-					isGrounded = true;
-				}
-			}
-			//Debug.DrawRay ((transform.position + rayOffset), new Vector2 (0.0f, -(collider.bounds.extents.y + 0.1f)), Color.red);
-		}
-
-		if (isGrounded) {
-			lastGroundedLevel = Mathf.Floor (transform.position.y);
-		}
-		*/
-
-
+	{
 		for (int i = 0; i < numberOfGroundCheckRays; i++) {
-			RaycastHit2D hit = Physics2D.Raycast ((transform.position + groundCheckRayOffsets [i]), -Vector2.up, groundCheckRaycastDistance, PlatformLayerMask);
+			RaycastHit2D hit = Physics2D.Raycast ((transform.position + groundCheckRayOffsets [i]), 
+			                                      -Vector2.up, groundCheckRaycastDistance, PlatformLayerMask);
 			if (hit.collider != null) {
-				lastGroundedLevel = Mathf.Floor (transform.position.y);
+				lastGroundedLevel = transform.position.y;
 				return true;
 			}
 		}
         
 		return false;
 	}
+
 
 	int isTouchingWall ()
 	{	// returns -1 if touching left | 0 if touching noWall | 1 if touchign right
 		return isTouchingLeftWall () ? -1 : (isTouchingRightWall () ? 1 : 0);
 	}
 
+
 	bool isTouchingRightWall ()
 	{
-
 		for (int i = 0; i < numberOfWallCheckRays; i++) {
-			RaycastHit2D hit = Physics2D.Raycast ((transform.position + wallCheckRayOffsets [i]), Vector2.right, wallTouchCheckRaycastDistance, PlatformLayerMask);
+			RaycastHit2D hit = Physics2D.Raycast ((transform.position + wallCheckRayOffsets [i]), 
+			                                      Vector2.right, wallTouchCheckRaycastDistance, PlatformLayerMask);
 			if (hit.collider != null) {
 				return true;
 			}
-			//Debug.DrawRay ((transform.position + wallCheckRayOffsets [i]), new Vector2 ((collider.bounds.extents.x + 0.1f), 0.0f), Color.green);
 		}
 
 		return false;
 	}
     
+
 	bool isTouchingLeftWall ()
 	{
-        
 		for (int i = 0; i < numberOfWallCheckRays; i++) {
-			RaycastHit2D hit = Physics2D.Raycast ((transform.position + wallCheckRayOffsets [i]), -Vector2.right, wallTouchCheckRaycastDistance, PlatformLayerMask);
+			RaycastHit2D hit = Physics2D.Raycast ((transform.position + wallCheckRayOffsets [i]), 
+			                                      -Vector2.right, wallTouchCheckRaycastDistance, PlatformLayerMask);
 			if (hit.collider != null) {
 				return true;
 			}
-			//Debug.DrawRay ((transform.position + wallCheckRayOffsets [i]), new Vector2 (-(collider.bounds.extents.x + 0.1f), 0.0f), Color.green);
 		}
 		
 		return false;
 	}
     
+
 	void InitializeRays ()
 	{
 		CalculateGroundCheckRayPositions ();
 		CalculateWallCheckRayPositions ();
 	}
 
+
 	void CalculateGroundCheckRayPositions ()
 	{
 		groundCheckRayOffsets.Clear ();
-		float extentsWithoutskinDepth = skinDepth - collider.bounds.extents.x;
-		float distanceBetweenRays = (collider.bounds.size.x - 2 * skinDepth) / (numberOfGroundCheckRays - 1);
+		float extentsWithoutskinDepth = skinDepth - clldr.bounds.extents.x;
+		float distanceBetweenRays = (clldr.bounds.size.x - 2 * skinDepth) / (numberOfGroundCheckRays - 1);
 		Vector3 currentOffset = new Vector3 (0.0f, 0.0f, 0.0f);
 
 		for (int i = 0; i < numberOfGroundCheckRays; i++) {
 			currentOffset.x = extentsWithoutskinDepth + i * distanceBetweenRays;
 			groundCheckRayOffsets.Add (currentOffset);
 		}
-		/*
-		Debug.Log("ground check ray offsets:");
-		foreach (Vector3 rayOffset in groundCheckRayOffsets) {
-			Debug.Log (rayOffset.x);
-		}
-		 */
 	}
-	
+
+
 	void CalculateWallCheckRayPositions ()
 	{
 		wallCheckRayOffsets.Clear ();
-		float extentsWithoutskinDepth = skinDepth - collider.bounds.extents.y;
-		float distanceBetweenRays = (collider.bounds.size.y - 2 * skinDepth) / (numberOfWallCheckRays - 1);
+		float extentsWithoutskinDepth = skinDepth - clldr.bounds.extents.y;
+		float distanceBetweenRays = (clldr.bounds.size.y - 2 * skinDepth) / (numberOfWallCheckRays - 1);
 		Vector3 currentOffset = new Vector3 (0.0f, 0.0f, 0.0f);
 
 		for (int i = 0; i < numberOfWallCheckRays; i++) {
 			currentOffset.y = extentsWithoutskinDepth + i * distanceBetweenRays;
 			wallCheckRayOffsets.Add (currentOffset);
 		}
-		/*
-		Debug.Log ("wall check ray offsets:");
-		foreach (Vector3 rayOffset in wallCheckRayOffsets) {
-			Debug.Log (rayOffset.y);
-		}
-		*/
 	}
+
 
 	void CheckIfOutsideBounds ()
 	{
-		if ((collider.bounds.max.y + 3.0f) < (-levelboundsCollider.size.y / 2 + levelboundsCollider.offset.y)) {
+		if ((clldr.bounds.max.y + 3.0f) < (-levelboundsCollider.size.y / 2 + levelboundsCollider.offset.y)) {
 			Die ();
 		}
 	}
-
-
-
-
-
 }

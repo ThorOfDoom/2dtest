@@ -1,19 +1,21 @@
 ﻿using UnityEngine;
 using System.Collections;
 
+
 public class Enemy : MonoBehaviour
 {
-
 	public float movementSpeed;
 	public float damage;
 	public float health;
 
-	private BasicMovement movement;
+	BasicMovement movement;
+
 
 	void Start ()
 	{
 		movement = GetComponent<BasicMovement> ();
 	}
+
 
 	public void TakeHit (float damage, float hitX)
 	{
@@ -34,6 +36,7 @@ public class Enemy : MonoBehaviour
 			Die ();
 		}
 	}
+
 
 	void Die ()
 	{

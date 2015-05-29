@@ -1,6 +1,7 @@
 ﻿using UnityEngine;
 using System.Collections;
 
+
 [AddComponentMenu( "Utilities/HUDFPS")]
 public class HUDFPS : MonoBehaviour
 {

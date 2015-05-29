@@ -2,26 +2,30 @@
 using System.Collections;
 using System.Collections.Generic;
 
+
 public class PlayerInputController : MonoBehaviour
 {
 	public int moving;
 	public bool running = false;
 	public bool runToggle = false;
-	public int jumping = 0;
+	public int jumping;
 	public bool blinking = false;
 	public bool attacking = false;
 
-	private Dictionary<string, string> keyBindings;
-	// Use this for initialization
+	Dictionary<string, string> keyBindings;
+
+
 	void Start ()
 	{
 		keyBindings = GetKeyBindings ();
 	}
 
+
 	void Update ()
 	{
 		moving = 0;
 		running = false;
+		jumping = 0;
 
 		if (Input.GetKey (keyBindings ["moveLeft"]) || Input.GetKey (keyBindings ["moveLeftAlt"])) {
 			moving -= 1;
@@ -62,6 +66,7 @@ public class PlayerInputController : MonoBehaviour
 			attacking = false;
 		}
 	}
+
 
 	/*
 	 * reads KeyBindings.txt and parses the values into the keyBindings Dictionary.

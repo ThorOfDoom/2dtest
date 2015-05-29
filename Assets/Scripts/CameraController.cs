@@ -1,19 +1,20 @@
 ﻿using UnityEngine;
 using System.Collections;
 
+
 public class CameraController : MonoBehaviour
 {
 	public GameObject player;
 	public BoxCollider2D bounds;
 	public Vector2 leash;
 
-	private Vector3 _min;
-	private Vector3 _max;
-	private Transform _playerTransform;
-	private Player _player;
-	private float _cameraOrthographicWidth;
-	private Vector2 _leash;
-	private float _lastGround;
+	Vector3 _min;
+	Vector3 _max;
+	Transform _playerTransform;
+	Player _player;
+	float _cameraOrthographicWidth;
+	Vector2 _leash;
+	float _lastGround;
 
 
 	void Start ()
@@ -26,6 +27,7 @@ public class CameraController : MonoBehaviour
 		_leash = new Vector2 (leash.x / 2, leash.y / 2);
 	}
 
+
 	void Update ()
 	{
 		//DrawLeash ();
@@ -35,15 +37,13 @@ public class CameraController : MonoBehaviour
 		float x = CheckXAxis ();
 		float y = CheckYAxis ();
 
-		//if(_player.lastGroundedLevel >)
-
 		transform.position = new Vector3 (x, y, transform.position.z);
 	}
+
 
 	float CheckXAxis ()
 	{
 		float x = transform.position.x;
-
 		// Left movement
 		if (_playerTransform.position.x < (transform.position.x - _leash.x)) {
 			x = _playerTransform.position.x + _leash.x;
@@ -54,7 +54,6 @@ public class CameraController : MonoBehaviour
 
 			return x;
 		}
-
 		// Right movement
 		if (_playerTransform.position.x > (transform.position.x + _leash.x)) {
 			x = _playerTransform.position.x - _leash.x;
@@ -69,19 +68,13 @@ public class CameraController : MonoBehaviour
 		return x;
 	}
 
+
 	float CheckYAxis ()
 	{
 		float y = transform.position.y;
-
 		// Downward movement
 		if (_playerTransform.position.y < (transform.position.y - _leash.y)) {
 			y = _playerTransform.position.y + _leash.y;
-
-			/*if (!float.IsNaN (_player.lastGroundedLevel) && _player.grounded && (_player.lastGroundedLevel + _leash.y) < y) {
-				_lastGround = _player.lastGroundedLevel;
-
-				y = _lastGround + _leash.y;
-			}*/
 
 			if (y < (_min.y + Camera.main.orthographicSize)) {
 				y = _min.y + Camera.main.orthographicSize;
@@ -89,7 +82,6 @@ public class CameraController : MonoBehaviour
 
 			return y;
 		} 
-
 		// Upward movement
 		if (_playerTransform.position.y > (transform.position.y + _leash.y)) {
 			y = _playerTransform.position.y - _leash.y;
@@ -103,6 +95,7 @@ public class CameraController : MonoBehaviour
 
 		return y;
 	}
+
 
 	void DrawLeash ()// debug... kidna useless actually
 	{

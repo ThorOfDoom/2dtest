@@ -7,13 +7,11 @@ public class LevelBuilder2 : MonoBehaviour
 	// the total counts will be replaced in the preloader for the game
 	public string tier;
 	public int level;
-	public int totalEasyLevels;
-	public int totalMediumLevels;
-	public int totalHardLevels;
-	public int totalEasyModules;
-	public int totalMediumModules;
-	public int totalHardModules;
-	public int totalTextureCount;
+	public int easyModuleCount;
+	public int mediumModulesCount;
+	public int hardModuleCount;
+	public int textureCount;
+	public bool buildAll;
 	public GameObject blockToUse;
 	public GameObject spikeToUse;
 	public GameObject module;
@@ -29,22 +27,24 @@ public class LevelBuilder2 : MonoBehaviour
 	void Start ()
 	{
 		Init ();
-		GenerateLevelFormat ();
-		GenerateModuleSequence ();
-		PopulateModuleData ();
+		if (buildAll) {
+			textureCode = Random.Range (1, textureCount).ToString ();
+			GenerateDebugModuleSequence ();
+			PopulateModuleData ();
+		} else {
+			GenerateLevelFormat ();
+			GenerateModuleSequence ();
+			PopulateModuleData ();
+		}
 		BuildLevel ();
 	}
     
 	void Init ()
 	{
-		// file name count starts at 1
-		totalEasyLevels++;
-		totalEasyModules++;
-		totalMediumLevels++;
-		totalMediumModules++;
-		totalHardLevels++;
-		totalHardModules++;
-		totalTextureCount++;
+		easyModuleCount = The.data.EasyModuleCount;
+		mediumModulesCount = The.data.MediumModuleCount;
+		hardModuleCount = The.data.HardModuleCount;
+		textureCount = The.data.TextureCount + 1;
 		if (levelFormat == null) {
 			levelFormat = new int[3];
 		}
@@ -69,7 +69,7 @@ public class LevelBuilder2 : MonoBehaviour
 				Debug.Log ("Error: could not parse level structure \n");
 			}
 			if (compareableTextureCode == 0) { // choose random texture 
-				textureCode = Random.Range (1, totalTextureCount).ToString ();
+				textureCode = Random.Range (1, textureCount).ToString ();
 			} else {
 				textureCode = tempStructure [3].Trim ();
 			}
@@ -88,13 +88,13 @@ public class LevelBuilder2 : MonoBehaviour
 		for (int i = 0; i < totalModuleCount; i++) {
 			moduleSequence [i] = new string[2];
 			if (i < levelFormat [0]) {
-				rangeCap = totalEasyModules;
+				rangeCap = easyModuleCount + 1;
 				moduleSequence [i] [0] = "Easy";
 			} else if (i < levelFormat [0] + levelFormat [1]) {
-				rangeCap = totalMediumModules;
+				rangeCap = mediumModulesCount + 1;
 				moduleSequence [i] [0] = "Medium";
 			} else {
-				rangeCap = totalHardModules;
+				rangeCap = hardModuleCount + 1;
 				moduleSequence [i] [0] = "Hard";
 			}
 			moduleSequence [i] [1] = Random.Range (1, rangeCap).ToString ();
@@ -173,6 +173,25 @@ public class LevelBuilder2 : MonoBehaviour
 			yOffset = mb.Build (numberOfModules++, yOffset);
 			tempModule.transform.parent = transform;
 		}
+	}
+
+	//DEBUG
+	void GenerateDebugModuleSequence ()
+	{
+		moduleSequence = new string[easyModuleCount + mediumModulesCount + hardModuleCount][];
+		int n = 0;
+		for (int i = 0; i < easyModuleCount; i++) {
+			moduleSequence [i] = new string[2]{"Easy", (++n).ToString ()};
+		}
+		n = 0;
+		for (int i = easyModuleCount; i < easyModuleCount+mediumModulesCount; i++) {
+			moduleSequence [i] = new string[2]{"Medium", (++n).ToString ()};
+		}
+		n = 0;
+		for (int i = easyModuleCount+mediumModulesCount; i < easyModuleCount+mediumModulesCount+hardModuleCount; i++) {
+			moduleSequence [i] = new string[2]{"Hard", (++n).ToString ()};
+		}
+		Debug.Log (easyModuleCount + mediumModulesCount + hardModuleCount + " modules build");
 	}
 }
 

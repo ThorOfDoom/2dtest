@@ -7,21 +7,22 @@ public class LevelBuilder2 : MonoBehaviour
 	// the total counts will be replaced in the preloader for the game
 	public string tier;
 	public int level;
-	public int easyModuleCount;
-	public int mediumModulesCount;
-	public int hardModuleCount;
-	public int textureCount;
 	public bool buildAll;
 	public GameObject blockToUse;
 	public GameObject spikeToUse;
 	public GameObject module;
 
+	int easyModuleCount;
+	int mediumModulesCount;
+	int hardModuleCount;
+	int textureCount;
 	int[] levelFormat;
 	string[][] moduleSequence;
 	string textureCode;
 	ModuleData[] moduleData;
 	int numberOfModules;
 	int yOffset;
+	BoxCollider2D levelBounds;
 
 	// Use this for initialization
 	void Start ()
@@ -41,6 +42,7 @@ public class LevelBuilder2 : MonoBehaviour
     
 	void Init ()
 	{
+		levelBounds = GetComponentInChildren<BoxCollider2D> ();
 		easyModuleCount = The.data.EasyModuleCount;
 		mediumModulesCount = The.data.MediumModuleCount;
 		hardModuleCount = The.data.HardModuleCount;
@@ -117,51 +119,57 @@ public class LevelBuilder2 : MonoBehaviour
 
 	void PopulateModuleData ()
 	{
-		moduleData = new ModuleData[moduleSequence.Length];
-		int n = moduleSequence.Length;
-		for (int i = 0; i < n; i++) {
-			List<Vector4> blockData = new List<Vector4> ();
-			List<Vector4> spikeData = new List<Vector4> ();
+		moduleData = new ModuleData[moduleSequence.Length + 1];
 
-			TextAsset textFile = (TextAsset)Resources.Load ("Modules/" + moduleSequence [i] [0] + "/" + 
-				moduleSequence [i] [1], typeof(TextAsset));
-			if (textFile == null) {
-				Debug.Log ("Error: Modules/" + moduleSequence [i] [0] + "/" + moduleSequence [i] [1] + " no such file");
-			}
-			System.IO.StringReader textStream = new System.IO.StringReader (textFile.text);
-			string line;
-			while ((line = textStream.ReadLine()) != null) {
-				if (!string.IsNullOrEmpty (line)) {
-					string[] rawData = new string[4];
-					rawData = line.Split (',');
-					if (rawData [0].Equals ("blk")) {
-						blockData.Add (new Vector4 (float.Parse (rawData [1]), float.Parse (rawData [2]), 
-						                            float.Parse (rawData [3]), float.Parse (rawData [4])));
-					} else if (rawData [0].Equals ("spk")) {
-						spikeData.Add (new Vector4 (float.Parse (rawData [1]), float.Parse (rawData [2]), 
-						                            float.Parse (rawData [3]), float.Parse (rawData [4])));
-					} else if (rawData [0].Equals ("stt")) {
-						moduleData [i].startPointHeight = (int)float.Parse (rawData [1]);
-					} else if (rawData [0].Equals ("end")) {
-						moduleData [i].endPointHeight = (int)float.Parse (rawData [1]);
-					} else {
-						Debug.Log ("Error loading module: invalid formating.");
-					}
-				}
-			}
-			moduleData [i].blocks = blockData.ToArray ();
-			moduleData [i].spikes = spikeData.ToArray ();
-			moduleData [i].blockToUse = blockToUse;
-			moduleData [i].blockTexture = (Material)Resources.Load ("Textures/" + moduleSequence [i] [0] + "/" + 
-				textureCode, typeof(Material));
-			if (moduleData [i].blockTexture == null) {
-				Debug.Log ("no texture found at: Textures/" + moduleSequence [i] [0] + "/" + 
-					textureCode);
-			}
-			moduleData [i].spikeToUse = spikeToUse;
+		GetModuleData (0, "Modules/Start/" + tier);
+
+		int n = moduleData.Length;
+		for (int i = 1; i < n; i++) {
+			GetModuleData (i, "Modules/" + moduleSequence [i - 1] [0] + "/" + moduleSequence [i - 1] [1]);
 		}
 	}
 
+	void GetModuleData (int i, string path)
+	{
+		List<Vector4> blockData = new List<Vector4> ();
+		List<Vector4> spikeData = new List<Vector4> ();
+
+		TextAsset textFile = (TextAsset)Resources.Load (path, typeof(TextAsset));
+		if (textFile == null) {
+			Debug.Log ("Error: " + path + ".txt no such file");
+		}
+
+		System.IO.StringReader textStream = new System.IO.StringReader (textFile.text);
+		string line;
+		while ((line = textStream.ReadLine ()) != null) {
+			if (!string.IsNullOrEmpty (line)) {
+				string[] rawData = new string[4];
+				rawData = line.Split (',');
+				if (rawData [0].Equals ("blk")) {
+					blockData.Add (new Vector4 (float.Parse (rawData [1]), float.Parse (rawData [2]), float.Parse (rawData [3]), float.Parse (rawData [4])));
+				} else
+					if (rawData [0].Equals ("spk")) {
+					spikeData.Add (new Vector4 (float.Parse (rawData [1]), float.Parse (rawData [2]), float.Parse (rawData [3]), float.Parse (rawData [4])));
+				} else
+						if (rawData [0].Equals ("stt")) {
+					moduleData [i].startPointHeight = (int)float.Parse (rawData [1]);
+				} else
+							if (rawData [0].Equals ("end")) {
+					moduleData [i].endPointHeight = (int)float.Parse (rawData [1]);
+				} else {
+					Debug.Log ("Error loading module: invalid formating.");
+				}
+			}
+		}
+		moduleData [i].blocks = blockData.ToArray ();
+		moduleData [i].spikes = spikeData.ToArray ();
+		moduleData [i].blockToUse = blockToUse;
+		moduleData [i].blockTexture = (Material)Resources.Load ("Textures/" + (i == 0 ? tier : moduleSequence [i - 1] [0]) + "/" + textureCode, typeof(Material));
+		if (moduleData [i].blockTexture == null) {
+			Debug.Log ("no texture found at: Textures/" + (i == 0 ? tier : moduleSequence [i - 1] [0]) + "/" + textureCode);
+		}
+		moduleData [i].spikeToUse = spikeToUse;
+	}
 
 	void BuildLevel ()
 	{
@@ -173,6 +181,8 @@ public class LevelBuilder2 : MonoBehaviour
 			yOffset = mb.Build (numberOfModules++, yOffset);
 			tempModule.transform.parent = transform;
 		}
+		levelBounds.size = new Vector2 (numberOfModules * 36.0f, 60.0f + Mathf.Abs (yOffset));
+		levelBounds.offset = new Vector2 (levelBounds.size.x / 2.0f, -(levelBounds.size.y / 2.0f) + 40.0f);
 	}
 
 	//DEBUG

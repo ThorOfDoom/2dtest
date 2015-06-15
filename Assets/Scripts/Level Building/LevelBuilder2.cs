@@ -23,6 +23,7 @@ public class LevelBuilder2 : MonoBehaviour
 	int numberOfModules;
 	int yOffset;
 	BoxCollider2D levelBounds;
+	Vector2 playerPosition;
 
 	// Use this for initialization
 	void Start ()
@@ -38,6 +39,7 @@ public class LevelBuilder2 : MonoBehaviour
 			PopulateModuleData ();
 		}
 		BuildLevel ();
+		PlacePlayer ();
 	}
     
 	void Init ()
@@ -150,12 +152,12 @@ public class LevelBuilder2 : MonoBehaviour
 				} else
 					if (rawData [0].Equals ("spk")) {
 					spikeData.Add (new Vector4 (float.Parse (rawData [1]), float.Parse (rawData [2]), float.Parse (rawData [3]), float.Parse (rawData [4])));
-				} else
-						if (rawData [0].Equals ("stt")) {
+				} else if (rawData [0].Equals ("stt")) {
 					moduleData [i].startPointHeight = (int)float.Parse (rawData [1]);
-				} else
-							if (rawData [0].Equals ("end")) {
+				} else if (rawData [0].Equals ("end")) {
 					moduleData [i].endPointHeight = (int)float.Parse (rawData [1]);
+				} else if (rawData [0].Equals ("pla")) {
+					playerPosition = new Vector2 (float.Parse (rawData [1]), float.Parse (rawData [2]));
 				} else {
 					Debug.Log ("Error loading module: invalid formating.");
 				}
@@ -183,6 +185,13 @@ public class LevelBuilder2 : MonoBehaviour
 		}
 		levelBounds.size = new Vector2 (numberOfModules * 36.0f, 60.0f + Mathf.Abs (yOffset));
 		levelBounds.offset = new Vector2 (levelBounds.size.x / 2.0f, -(levelBounds.size.y / 2.0f) + 40.0f);
+	}
+
+	void PlacePlayer ()
+	{
+		GameObject player = GameObject.FindGameObjectsWithTag ("Player") [0];
+		player.transform.position = playerPosition;
+		player.GetComponent<Player> ().startingPosition = playerPosition;
 	}
 
 	//DEBUG

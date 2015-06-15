@@ -29,6 +29,7 @@ public class Player : MonoBehaviour
 	public Vector2 knockBackDistance;
 	public LayerMask enemyLayerMask;
 	public Slider blinkBar;
+	public Vector2 startingPosition;
 	[HideInInspector]
 	public float
 		lastGroundedLevel;
@@ -63,7 +64,6 @@ public class Player : MonoBehaviour
 	float wallTouchCheckRaycastDistance;
 	float groundCheckRaycastDistance;
 	float lastHitTime;
-	Vector3 startingPosition;
 	float currentHealthPoints;
 	bool knockBack = false;
 	int knockBackDirection;
@@ -189,21 +189,33 @@ public class Player : MonoBehaviour
 	{
 		float hitTime = Time.time;
 
-		if ((hitTime - hitImmunityTime) > lastHitTime && coll.gameObject.tag == "Enemy") {
-			knockBack = true;
-			Enemy enemy = coll.gameObject.GetComponent<Enemy> ();
-			TakeHit (enemy.damage);
-			lastHitTime = hitTime;
-			if (coll.transform.position.x < transform.position.x) {
-				knockBackDirection = 1;
-			} else {
-				knockBackDirection = -1;
+		if ((hitTime - hitImmunityTime) > lastHitTime) {
+			if (coll.gameObject.tag == "Enemy") {
+				knockBack = true;
+				Enemy enemy = coll.gameObject.GetComponent<Enemy> ();
+				TakeHit (enemy.damage);
+				lastHitTime = hitTime;
+				if (coll.transform.position.x < transform.position.x) {
+					knockBackDirection = 1;
+				} else {
+					knockBackDirection = -1;
+				}
+				
+				if ((transform.position.y - clldr.bounds.extents.y) > 
+					(coll.transform.position.y + coll.collider.bounds.extents.y)) {
+					knockBackDirection = 0;
+				}
 			}
+		}
+	}
 
-			if ((transform.position.y - clldr.bounds.extents.y) > 
-				(coll.transform.position.y + coll.collider.bounds.extents.y)) {
-				knockBackDirection = 0;
-			}
+	void OnCollisionEnter2D (Collision2D coll)
+	{
+		float hitTime = Time.time;
+		if ((hitTime - hitImmunityTime) > lastHitTime && coll.gameObject.tag == "Spike") {
+			Spike spike = coll.gameObject.GetComponentInParent<Spike> ();
+			TakeHit (spike.damage);
+			lastHitTime = hitTime;
 		}
 	}
 

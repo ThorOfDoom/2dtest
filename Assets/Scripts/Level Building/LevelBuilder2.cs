@@ -8,6 +8,7 @@ public class LevelBuilder2 : MonoBehaviour
 	public string tier;
 	public int level;
 	public bool buildAll;
+	public bool buildMix;
 	public GameObject blockToUse;
 	public GameObject spikeToUse;
 	public GameObject module;
@@ -32,12 +33,15 @@ public class LevelBuilder2 : MonoBehaviour
 		if (buildAll) {
 			textureCode = Random.Range (1, textureCount).ToString ();
 			GenerateDebugModuleSequence ();
-			PopulateModuleData ();
+		} else if (buildMix) {	
+			levelFormat = new int[]{5,5,0};
+			textureCode = Random.Range (1, textureCount).ToString ();
+			GenerateModuleSequence ();
 		} else {
 			GenerateLevelFormat ();
 			GenerateModuleSequence ();
-			PopulateModuleData ();
 		}
+		PopulateModuleData ();
 		BuildLevel ();
 		PlacePlayer ();
 	}
@@ -166,11 +170,11 @@ public class LevelBuilder2 : MonoBehaviour
 		moduleData [i].blocks = blockData.ToArray ();
 		moduleData [i].spikes = spikeData.ToArray ();
 		moduleData [i].blockToUse = blockToUse;
+		moduleData [i].spikeToUse = spikeToUse;
 		moduleData [i].blockTexture = (Material)Resources.Load ("Textures/" + (i == 0 ? tier : moduleSequence [i - 1] [0]) + "/" + textureCode, typeof(Material));
 		if (moduleData [i].blockTexture == null) {
 			Debug.Log ("no texture found at: Textures/" + (i == 0 ? tier : moduleSequence [i - 1] [0]) + "/" + textureCode);
 		}
-		moduleData [i].spikeToUse = spikeToUse;
 	}
 
 	void BuildLevel ()

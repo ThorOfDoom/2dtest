@@ -1,7 +1,7 @@
 ﻿using UnityEngine;
 using System.Collections;
 using System.Collections.Generic;
-
+using System.IO;
 
 public class PlayerInputController : MonoBehaviour
 {
@@ -17,6 +17,7 @@ public class PlayerInputController : MonoBehaviour
 
 	void Start ()
 	{
+		//TODO put it into THE
 		keyBindings = GetKeyBindings ();
 	}
 
@@ -44,8 +45,6 @@ public class PlayerInputController : MonoBehaviour
 
 		if (Input.GetKeyDown (keyBindings ["jump"]) || Input.GetKeyDown (keyBindings ["jumpAlt"])) {
 			jumping = 1;
-		} else {
-			jumping = 0;
 		}
 
 		if (Input.GetKeyUp (keyBindings ["jump"]) || Input.GetKeyUp (keyBindings ["jumpAlt"])) {
@@ -75,7 +74,7 @@ public class PlayerInputController : MonoBehaviour
 	{
 		Dictionary<string, string> keys = new Dictionary<string, string> ();
 		TextAsset textFile = (TextAsset)Resources.Load ("KeyBindings", typeof(TextAsset));
-		System.IO.StringReader textStream = new System.IO.StringReader (textFile.text);
+		StringReader textStream = new StringReader (textFile.text);
 		string line;
 
 		while ((line = textStream.ReadLine()) != null) {
@@ -89,6 +88,7 @@ public class PlayerInputController : MonoBehaviour
 				}
 			}
 		}
+
 		return keys;
 	}
 }

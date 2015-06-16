@@ -282,7 +282,7 @@ public class Player : MonoBehaviour
 	{
 		knockBackAirTime += Time.deltaTime;
         
-		knockBackVelocity.x = (knockBackForce.x + Physics2D.gravity.y * knockBackAirTime);
+		knockBackVelocity.x = knockBackForce.x + Physics2D.gravity.y * knockBackAirTime;
 		knockBackVelocity.y = knockBackForce.y + Physics2D.gravity.y * knockBackAirTime;
 
 		if (knockBackVelocity.x > 0.0f) {
@@ -371,7 +371,7 @@ public class Player : MonoBehaviour
 		} else if (doWallJump) {
 			airTime += Time.deltaTime;
 			velocity.y = initialJumpVelocity + Physics2D.gravity.y * airTime;
-			velocity.x = walkVelocity * wallJumpDirection;
+			velocity.x = walkVelocity * wallJumpDirection;// TODO what if we are running?
 			transform.localScale = new Vector3 (
 				Mathf.Abs (transform.localScale.x) * (body.velocity.x > 0 ? 1 : -1), 
 				transform.localScale.y, 

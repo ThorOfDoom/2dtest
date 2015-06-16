@@ -21,6 +21,11 @@ public class PlayerAttack : MonoBehaviour
 		if (weaponStats.attackSpeed != anim.length) {
 			//TODO adjust animation speed!
 			weaponStats.attackSpeed = anim.length;
+			/*
+			 * in new version of unity we will be able to set 
+			 * the speed of the animation according to the weapons 
+			 * attack speed
+			 */
 		}
 	}
 

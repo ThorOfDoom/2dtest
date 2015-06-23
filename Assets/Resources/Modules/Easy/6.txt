@@ -11,3 +11,10 @@ blk,7,3,5,11
 blk,0,12,7,1
 stt,7
 end,0
+spc,6
+enm,3,8
+enm,8,0
+enm,15,2
+enm,18,2
+enm,23,0
+enm,29,11

@@ -5,3 +5,10 @@ blk,15,0,6,5
 blk,25,0,6,3
 stt,-1
 end,-1
+spc,6
+enm,7,3
+enm,9,3
+enm,16,5
+enm,19,5
+enm,26,5
+enm,29,5

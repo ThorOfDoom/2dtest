@@ -1,5 +1,7 @@
 ﻿using UnityEngine;
 using System.Collections;
+using System.Collections.Generic;
+using System.Linq;
 
 
 public class PlayerAttack : MonoBehaviour
@@ -10,6 +12,7 @@ public class PlayerAttack : MonoBehaviour
 	public LayerMask enemyLayer;
 
 	WeaponStats weaponStats;
+	Dictionary<int, float> hitEnemies;
 
 	
 	void Start ()
@@ -27,16 +30,43 @@ public class PlayerAttack : MonoBehaviour
 			 * attack speed
 			 */
 		}
+
+		hitEnemies = new Dictionary<int, float> ();
 	}
 
-
-	public WeaponStats GetWeaponStats ()
+	void FixedUpdate ()
 	{
-		return weaponStats;
+		UpdateHitEnemies ();
+	}
+
+	public void Attack ()
+	{
+		RaycastHit2D hit = DoAttack ();
+		if (hit.collider != null && !hitEnemies.ContainsKey (hit.collider.GetInstanceID ())) {
+			Enemy enemy = hit.collider.GetComponent<Enemy> ();
+			
+			enemy.TakeHit (weaponStats.damage, hit.point.x);
+			if (enemy.health > 0.0f) {
+				hitEnemies.Add (hit.collider.GetInstanceID (), Time.time);
+			}
+		}
+	}
+	
+	
+	void UpdateHitEnemies ()
+	{
+		if (hitEnemies.Count != 0) {
+			KeyValuePair<int, float>[] itemsToRemove = 
+				hitEnemies.Where (f => f.Value < Time.time + weaponStats.attackSpeed).ToArray ();
+			
+			for (int i = 0; i < itemsToRemove.Length; i++) {
+				hitEnemies.Remove (itemsToRemove [i].Key);
+			}
+		}
 	}
 
 
-	public RaycastHit2D DoAttack ()
+	RaycastHit2D DoAttack ()
 	{
 		Vector2 heading = weaponStats.weaponTip.transform.position - weaponStats.transform.position;
 		float distance = heading.magnitude;

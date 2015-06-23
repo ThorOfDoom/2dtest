@@ -13,3 +13,8 @@ spk,2,0,5,0
 spk,29,0,5,0
 stt,1
 end,1
+spc,4
+enm,8,2
+enm,13,5
+enm,22,5
+enm,27,5

@@ -169,7 +169,8 @@ public class LevelBuilder2 : MonoBehaviour
 					enemySpawnCounter = int.Parse (rawData [1]);
 					enemySpawnPosition = new Vector2[enemySpawnCounter];
 				} else if (rawData [0].Equals ("enm") && enemySpawnPosition != null) {
-					enemySpawnPosition [--enemySpawnCounter] = new Vector2 (float.Parse (rawData [1]), float.Parse (rawData [2]));
+					Debug.Log (--enemySpawnCounter + "|" + path);
+					enemySpawnPosition [enemySpawnCounter] = new Vector2 (float.Parse (rawData [1]), float.Parse (rawData [2]));
 				} else {
 					Debug.Log ("Error loading module: invalid formating.");
 				}

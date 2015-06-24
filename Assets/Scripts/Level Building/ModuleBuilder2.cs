@@ -16,7 +16,7 @@ public class ModuleBuilder2 : MonoBehaviour
 			PlaceSpikes ();
 		}
 		if (moduleData.enemies != null && moduleData.enemies.Length != 0) {
-			//SpawnEnemies ();
+			SpawnEnemies ();
 		}
 		
 		_yOffset = yOffset - moduleData.startPointHeight;
@@ -93,7 +93,8 @@ public class ModuleBuilder2 : MonoBehaviour
 		GameObject enemyContainer = new GameObject ("Enemies");
 		enemyContainer.transform.parent = transform;
 		for (int i = 0; i < moduleData.enemies.Length; i++) {
-			InstantiateEnemy (moduleData.enemies [i].x, moduleData.enemies [i].y, enemyContainer.transform);
+			// TODO adjust the spawn adjust for different sized enemies
+			InstantiateEnemy (moduleData.enemies [i].x + 0.5f, moduleData.enemies [i].y + 0.5f, enemyContainer.transform);
 		}
 	}
 

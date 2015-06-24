@@ -11,6 +11,7 @@ public class LevelBuilder2 : MonoBehaviour
 	public bool buildMix;
 	public GameObject blockToUse;
 	public GameObject spikeToUse;
+	public GameObject enemyToUse;
 	public GameObject module;
 
 	int easyModuleCount;
@@ -139,6 +140,8 @@ public class LevelBuilder2 : MonoBehaviour
 	{
 		List<Vector4> blockData = new List<Vector4> ();
 		List<Vector4> spikeData = new List<Vector4> ();
+		Vector2[] enemySpawnPosition = null;
+		int enemySpawnCounter = -1;
 
 		TextAsset textFile = (TextAsset)Resources.Load (path, typeof(TextAsset));
 		if (textFile == null) {
@@ -162,10 +165,23 @@ public class LevelBuilder2 : MonoBehaviour
 					moduleData [i].endPointHeight = (int)float.Parse (rawData [1]);
 				} else if (rawData [0].Equals ("pla")) {
 					playerPosition = new Vector2 (float.Parse (rawData [1]), float.Parse (rawData [2]));
+				} else if (rawData [0].Equals ("spc")) {
+					enemySpawnCounter = int.Parse (rawData [1]);
+					enemySpawnPosition = new Vector2[enemySpawnCounter];
+				} else if (rawData [0].Equals ("enm") && enemySpawnPosition != null) {
+					enemySpawnPosition [--enemySpawnCounter] = new Vector2 (float.Parse (rawData [1]), float.Parse (rawData [2]));
 				} else {
 					Debug.Log ("Error loading module: invalid formating.");
 				}
 			}
+		}
+		if (enemySpawnPosition != null && enemySpawnPosition.Length != 0) {
+			Shuffle (enemySpawnPosition);
+			//int n = Mathf.RoundToInt (enemySpawnPosition.Length / 2 + Random.value);
+			int n = enemySpawnPosition.Length;
+			moduleData [i].enemies = new Vector2[n];
+			System.Array.Copy (enemySpawnPosition, moduleData [i].enemies, n);
+			moduleData [i].enemyToUse = enemyToUse;
 		}
 		moduleData [i].blocks = blockData.ToArray ();
 		moduleData [i].spikes = spikeData.ToArray ();
@@ -222,9 +238,11 @@ public struct ModuleData
 {
 	public Vector4[] blocks; // this is an example of a  feature vector ???
 	public Vector4[] spikes;
+	public Vector2[] enemies;
 	public int startPointHeight;
 	public int endPointHeight;
 	public GameObject blockToUse;
 	public Material blockTexture;
 	public GameObject spikeToUse;
+	public GameObject enemyToUse;
 }

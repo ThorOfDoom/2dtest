@@ -39,7 +39,7 @@ public class BasicMovement : MonoBehaviour
 	{
 		enemy = GetComponent<Enemy> ();
 		body = GetComponent<Rigidbody2D> ();
-		clldr = GetComponent<BoxCollider2D> ();
+		clldr = GetComponentInChildren<BoxCollider2D> ();
 
 		groundCheckRayLength = (clldr.bounds.extents.y + skinDepth) / Mathf.Sin (45 * (Mathf.PI / 180));
 		rightGroundCheckDirection = new Vector2 (1.0f, -1.0f);
@@ -63,13 +63,13 @@ public class BasicMovement : MonoBehaviour
 
 		if (!falling) {
 			groundCheckDirection = facingRight ? rightGroundCheckDirection : leftGroundCheckDirection;
-			groundCheckRayOrigin.y = transform.position.y;
-			groundCheckRayOrigin.x = transform.position.x;
+			groundCheckRayOrigin.y = transform.position.y + (transform.localScale.y / 2) * transform.localScale.y;
+			groundCheckRayOrigin.x = transform.position.x + (transform.localScale.x / 2) * transform.localScale.x;
 
 			RaycastHit2D groundHit = Physics2D.Raycast (groundCheckRayOrigin, groundCheckDirection,
 			                                            groundCheckRayLength, obstacleLayerMask);
 			Debug.DrawRay (groundCheckRayOrigin, groundCheckDirection * groundCheckRayLength, Color.red);
-
+			Debug.Log (groundCheckRayOrigin.x);
 			bool touchesWall = false;
 			if (groundHit.collider == null || (touchesWall = isTouchingWall ())) {
 				if (!touchesWall && flippedLastFrame) {

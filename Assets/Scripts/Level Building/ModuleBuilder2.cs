@@ -15,7 +15,7 @@ public class ModuleBuilder2 : MonoBehaviour
 		if (moduleData.spikes.Length != 0) {
 			PlaceSpikes ();
 		}
-		if (moduleData.enemies != null && moduleData.enemies.Length != 0) {
+		if (moduleData.enemies != null && moduleData.enemies.Length != 0 && moduleData.spawnEnemies) {
 			SpawnEnemies ();
 		}
 		

@@ -9,6 +9,7 @@ public class LevelBuilder2 : MonoBehaviour
 	public int level;
 	public bool buildAll;
 	public bool buildMix;
+	public bool spawnEnemies = true;
 	public GameObject blockToUse;
 	public GameObject spikeToUse;
 	public GameObject enemyToUse;
@@ -196,6 +197,7 @@ public class LevelBuilder2 : MonoBehaviour
 			Debug.Log ("no texture found at: Textures/" + (i == 0 ? tier : moduleSequence [i - 1] [0]) + "/" + textureCode);
 		}
 		moduleData [i].name = path;
+		moduleData [i].spawnEnemies = spawnEnemies;
 	}
 
 	void BuildLevel ()
@@ -262,4 +264,5 @@ public struct ModuleData
 	public GameObject enemyToUse;
 	//DEBUG
 	public string name;
+	public bool spawnEnemies;
 }

@@ -15,6 +15,7 @@ public class EnemyMovement : MonoBehaviour
 	float halveBodyWidth;
 	bool isGrounded;
 	bool groundedLastFrame;
+	float airtime;
 
 	void Start ()
 	{
@@ -23,11 +24,16 @@ public class EnemyMovement : MonoBehaviour
 		clldr = GetComponent<BoxCollider2D> ();
 		halveBodyWidth = transform.localScale.x / 2;
 		isGrounded = groundedLastFrame = Grounded ();
+		airtime = 0.0f;
 	}
 
 	void FixedUpdate ()
 	{
-		isGrounded = Grounded ();
+		if (groundedLastFrame || flipedLastFrame) {
+			isGrounded = Grounded ();
+		} else {
+			isGrounded = CastGroundRay ();
+		}
 		// if not colliding
 		if (flipedLastFrame || !NeedToFlip ()) {
 			Move ();
@@ -40,11 +46,15 @@ public class EnemyMovement : MonoBehaviour
 
 	void Move ()
 	{
+		velocity = body.velocity;
 		if (isGrounded) {
-			velocity = body.velocity;
 			velocity.x = enemy.movementSpeed * transform.localScale.x;
-			body.velocity = velocity;
+			airtime = 0.0f;
+		} else {
+			airtime += Time.deltaTime;
+			velocity.y = Physics2D.gravity.y * airtime;
 		}
+		body.velocity = velocity;
 	}
 	
 	void Flip ()
@@ -63,12 +73,31 @@ public class EnemyMovement : MonoBehaviour
 		Vector2 groundCheckPoint = new Vector2 (transform.position.x + ((halveBodyWidth + checkRadius) * transform.localScale.x), 
 		                                        clldr.bounds.min.y - checkRadius);
 		if (Physics2D.OverlapPointNonAlloc (groundCheckPoint, collision, platformLayerMask) != 0) {
-			Debug.Log ("yes");
+			//Debug.Log ("yes");
 			return true;
 		}
 		
-		Debug.Log ("no");
+		//Debug.Log ("no");
 		return false;
+	}
+
+	bool CastGroundRay ()
+	{
+		float distance = Mathf.Abs (body.velocity.y * Time.fixedDeltaTime);
+		RaycastHit2D hit = Physics2D.Raycast (transform.position, -Vector2.up, distance + 0.5f, platformLayerMask);
+		Debug.DrawLine (transform.position - new Vector3 (0.0f, 0.5f + distance * 2, 0.0f), transform.position, Color.blue, Time.fixedDeltaTime);
+		if (hit.collider != null) {
+			Land (hit.distance - 0.5f);
+			return true;
+		}
+
+		return false;
+	}
+
+	void Land (float distance)
+	{
+		body.velocity = new Vector2 (body.velocity.x, 0.0f);
+		transform.position = new Vector2 (transform.position.x, transform.position.y - distance);
 	}
 
 	bool NeedToFlip ()

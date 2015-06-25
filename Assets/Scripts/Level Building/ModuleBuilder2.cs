@@ -24,7 +24,7 @@ public class ModuleBuilder2 : MonoBehaviour
 		
 		CleanUpBuildingBlocks ();
 
-
+		Debug.Log (moduleData.name);
 		return _yOffset + moduleData.endPointHeight;
 	}
 

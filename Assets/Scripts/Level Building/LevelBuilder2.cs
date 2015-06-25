@@ -13,6 +13,7 @@ public class LevelBuilder2 : MonoBehaviour
 	public GameObject spikeToUse;
 	public GameObject enemyToUse;
 	public GameObject module;
+	public string debugSequence;
 
 	int easyModuleCount;
 	int mediumModulesCount;
@@ -31,7 +32,10 @@ public class LevelBuilder2 : MonoBehaviour
 	void Start ()
 	{
 		Init ();
-		if (buildAll) {
+		if (!string.IsNullOrEmpty (debugSequence)) {
+			textureCode = Random.Range (1, textureCount).ToString ();
+			GenerateDebugModuleSequence (debugSequence);
+		} else if (buildAll) {
 			textureCode = Random.Range (1, textureCount).ToString ();
 			GenerateDebugModuleSequence ();
 		} else if (buildMix) {	
@@ -169,8 +173,7 @@ public class LevelBuilder2 : MonoBehaviour
 					enemySpawnCounter = int.Parse (rawData [1]);
 					enemySpawnPosition = new Vector2[enemySpawnCounter];
 				} else if (rawData [0].Equals ("enm") && enemySpawnPosition != null) {
-					Debug.Log (--enemySpawnCounter + "|" + path);
-					enemySpawnPosition [enemySpawnCounter] = new Vector2 (float.Parse (rawData [1]), float.Parse (rawData [2]));
+					enemySpawnPosition [--enemySpawnCounter] = new Vector2 (float.Parse (rawData [1]), float.Parse (rawData [2]));
 				} else {
 					Debug.Log ("Error loading module: invalid formating.");
 				}
@@ -192,6 +195,7 @@ public class LevelBuilder2 : MonoBehaviour
 		if (moduleData [i].blockTexture == null) {
 			Debug.Log ("no texture found at: Textures/" + (i == 0 ? tier : moduleSequence [i - 1] [0]) + "/" + textureCode);
 		}
+		moduleData [i].name = path;
 	}
 
 	void BuildLevel ()
@@ -233,6 +237,16 @@ public class LevelBuilder2 : MonoBehaviour
 		}
 		Debug.Log (easyModuleCount + mediumModulesCount + hardModuleCount + " modules build");
 	}
+
+	void GenerateDebugModuleSequence (string sequence)
+	{
+		string[] tempArr = sequence.Split (',');
+		moduleSequence = new string[tempArr.Length][];
+		for (int i = 0; i < tempArr.Length; i++) {
+			string[] temp = tempArr [i].Split ('|');
+			moduleSequence [i] = new string[2]{temp [0], temp [1]};
+		}
+	}
 }
 
 public struct ModuleData
@@ -246,4 +260,6 @@ public struct ModuleData
 	public Material blockTexture;
 	public GameObject spikeToUse;
 	public GameObject enemyToUse;
+	//DEBUG
+	public string name;
 }

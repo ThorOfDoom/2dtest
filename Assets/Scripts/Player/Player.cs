@@ -149,7 +149,7 @@ public class Player : MonoBehaviour
 			shouldMove = false;
 		}
 		
-		if ((playerInputController.running && shouldMove) || playerInputController.runToggle) {
+		if (playerInputController.running || playerInputController.runToggle) {
 			shouldRun = true;
 		} else {
 			shouldRun = false;

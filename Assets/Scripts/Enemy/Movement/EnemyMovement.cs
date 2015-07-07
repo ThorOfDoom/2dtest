@@ -4,7 +4,10 @@ using System.Collections;
 public class EnemyMovement : MonoBehaviour
 {
 	public LayerMask platformLayerMask;
+	public LayerMask enableLayerMask;
 	public float checkRadius;
+	public bool neverSleep;
+
 	//we start out facing right
 	bool facingRight = true;
 	Enemy enemy;
@@ -16,6 +19,7 @@ public class EnemyMovement : MonoBehaviour
 	bool isGrounded;
 	bool groundedLastFrame;
 	float airtime;
+	int pingCounter;
 
 	void Start ()
 	{
@@ -25,6 +29,10 @@ public class EnemyMovement : MonoBehaviour
 		halveBodyWidth = transform.localScale.x / 2;
 		isGrounded = groundedLastFrame = Grounded ();
 		airtime = 0.0f;
+		pingCounter = 0;
+		if (neverSleep) {
+			this.enabled = true;
+		}
 	}
 
 	void FixedUpdate ()
@@ -42,6 +50,11 @@ public class EnemyMovement : MonoBehaviour
 			Flip ();
 		}
 		groundedLastFrame = isGrounded;
+
+		if (--pingCounter < 0 && !neverSleep) {
+			body.velocity = new Vector2 (0.0f, 0.0f);
+			this.enabled = false;
+		}
 	}
 
 	void Move ()
@@ -120,6 +133,13 @@ public class EnemyMovement : MonoBehaviour
 	void ToggleFacing ()
 	{
 		facingRight = facingRight ? false : true;
+	}
+
+	public void EnablePing ()
+	{
+		pingCounter = Random.Range (25, 150);
+
+		this.enabled = true;
 	}
 
 	//DEBUG

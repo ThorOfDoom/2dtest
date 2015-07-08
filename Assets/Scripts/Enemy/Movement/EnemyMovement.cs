@@ -3,7 +3,7 @@ using System.Collections;
 
 public class EnemyMovement : MonoBehaviour
 {
-	public LayerMask platformLayerMask;
+	public LayerMask obstacleLayerMask;
 	public LayerMask enableLayerMask;
 	public float checkRadius;
 	public bool neverSleep;
@@ -21,6 +21,8 @@ public class EnemyMovement : MonoBehaviour
 	bool groundedLastFrame;
 	float airtime;
 	int pingCounter;
+	Vector3 rayOffset;
+	Vector3[] groundCheckRayPositions;
 
 	void Start ()
 	{
@@ -35,6 +37,8 @@ public class EnemyMovement : MonoBehaviour
 		if (neverSleep) {
 			this.enabled = true;
 		}
+		rayOffset = new Vector3 (clldr.bounds.extents.x, 0.0f, 0.0f);
+		groundCheckRayPositions = new Vector3[3];
 	}
 
 	void FixedUpdate ()
@@ -87,7 +91,7 @@ public class EnemyMovement : MonoBehaviour
 		                                                   platformLayerMask);*/
 		Vector2 groundCheckPoint = new Vector2 (transform.position.x + ((halveBodyWidth + checkRadius) * transform.localScale.x), 
 		                                        clldr.bounds.min.y - checkRadius);
-		if (Physics2D.OverlapPointNonAlloc (groundCheckPoint, collision, platformLayerMask) != 0) {
+		if (Physics2D.OverlapPointNonAlloc (groundCheckPoint, collision, obstacleLayerMask) != 0) {
 			//Debug.Log ("yes");
 			return true;
 		}
@@ -98,15 +102,34 @@ public class EnemyMovement : MonoBehaviour
 
 	bool CastGroundRay ()
 	{
+		GetGroundCheckRayPositions ();
 		float distance = Mathf.Abs (body.velocity.y * Time.fixedDeltaTime);
-		RaycastHit2D hit = Physics2D.Raycast (transform.position, -Vector2.up, distance + 0.5f, platformLayerMask);
-		Debug.DrawLine (transform.position - new Vector3 (0.0f, 0.5f + distance * 2, 0.0f), transform.position, Color.blue, Time.fixedDeltaTime);
-		if (hit.collider != null) {
-			Land (hit.distance - 0.5f);
-			return true;
+
+		for (int i = 0; i < groundCheckRayPositions.Length; i++) {
+			RaycastHit2D hit = Physics2D.Raycast (groundCheckRayPositions [i], -Vector2.up, 
+			                                      distance + 0.5f, obstacleLayerMask);
+			Debug.DrawLine (groundCheckRayPositions [i] - new Vector3 (0.0f, 0.5f + distance * 2, 0.0f), 
+			                groundCheckRayPositions [i], Color.blue, Time.fixedDeltaTime);
+			if (hit.collider != null) {
+				Debug.Log (hit.collider.name);
+				if (hit.collider.tag == "Spike") {
+					enemy.Die ();
+				} else {
+					Land (hit.distance - 0.5f);
+				}
+				return true;
+			}
 		}
 
 		return false;
+	}
+
+	void GetGroundCheckRayPositions ()
+	{
+		groundCheckRayPositions [0] = transform.position - rayOffset;
+
+		groundCheckRayPositions [1] = transform.position;
+		groundCheckRayPositions [2] = transform.position + rayOffset;
 	}
 
 	void Land (float distance)
@@ -125,7 +148,7 @@ public class EnemyMovement : MonoBehaviour
 		float circleYPos = transform.position.y - halveBodyHeight + checkRadius + 0.05f;
 		Collider2D collision = Physics2D.OverlapCircle (new Vector2 (circleXPos, circleYPos), 
 		                                                checkRadius, 
-		                                                 platformLayerMask);
+		                                                 obstacleLayerMask);
 
 		if (collision != null) {
 			return true;

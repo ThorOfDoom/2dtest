@@ -11,11 +11,12 @@ spk,12,17,14,2
 spk,17,10,4,0
 spk,26,6,2,1
 spk,21,0,6,0
+spc,6
 enm,2,2
 enm,5,2
 enm,8,2
+enm,28,2
 enm,31,2
 enm,34,2
-spc,6
 stt,1
 end,1

@@ -15,10 +15,10 @@ spk,13,10,3,0
 spk,16,7,3,0
 spk,19,4,3,0
 spk,27,0,6,0
+spc,4
 enm,1,4
 enm,4,4
 enm,24,1
 enm,34,1
-spc,4
 stt,3
 end,0

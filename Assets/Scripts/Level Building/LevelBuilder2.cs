@@ -173,8 +173,13 @@ public class LevelBuilder2 : MonoBehaviour
 				} else if (rawData [0].Equals ("spc")) {
 					enemySpawnCounter = int.Parse (rawData [1]);
 					enemySpawnPosition = new Vector2[enemySpawnCounter];
-				} else if (rawData [0].Equals ("enm") && enemySpawnPosition != null) {
-					enemySpawnPosition [--enemySpawnCounter] = new Vector2 (float.Parse (rawData [1]), float.Parse (rawData [2]));
+				} else if (rawData [0].Equals ("enm")) {
+					if (enemySpawnPosition == null) {
+						Debug.Log ("ERROR READING IN ENEMY POSITIONS: unknown number of enmies");
+						Debug.Log ("Move spc above enm in module file maybe?");
+					} else {
+						enemySpawnPosition [--enemySpawnCounter] = new Vector2 (float.Parse (rawData [1]), float.Parse (rawData [2]));
+					}
 				} else {
 					Debug.Log ("Error loading module: invalid formating.");
 				}
@@ -196,7 +201,9 @@ public class LevelBuilder2 : MonoBehaviour
 		if (moduleData [i].blockTexture == null) {
 			Debug.Log ("no texture found at: Textures/" + (i == 0 ? tier : moduleSequence [i - 1] [0]) + "/" + textureCode);
 		}
-		moduleData [i].name = path;
+		string[] splitPath = path.Split ('/');
+		moduleData [i].tier = splitPath [1];
+		moduleData [i].number = splitPath [2];
 		moduleData [i].spawnEnemies = spawnEnemies;
 	}
 
@@ -206,6 +213,7 @@ public class LevelBuilder2 : MonoBehaviour
 
 		for (int i = 0; i < n; i++) {
 			GameObject tempModule = (GameObject)Instantiate (module);
+			tempModule.name = moduleData [i].tier + " - " + moduleData [i].number;
 			ModuleBuilder2 mb = tempModule.GetComponent<ModuleBuilder2> ();
 			mb.moduleData = moduleData [i];
 			yOffset = mb.Build (numberOfModules++, yOffset);
@@ -246,7 +254,7 @@ public class LevelBuilder2 : MonoBehaviour
 		string[] tempArr = sequence.Split (',');
 		moduleSequence = new string[tempArr.Length][];
 		for (int i = 0; i < tempArr.Length; i++) {
-			string[] temp = tempArr [i].Split ('|');
+			string[] temp = tempArr [i].Split (':');
 			moduleSequence [i] = new string[2]{temp [0], temp [1]};
 		}
 	}
@@ -264,6 +272,7 @@ public struct ModuleData
 	public GameObject spikeToUse;
 	public GameObject enemyToUse;
 	//DEBUG
-	public string name;
+	public string tier;
+	public string number;
 	public bool spawnEnemies;
 }

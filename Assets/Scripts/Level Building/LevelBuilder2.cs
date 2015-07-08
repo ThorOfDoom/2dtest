@@ -14,7 +14,7 @@ public class LevelBuilder2 : MonoBehaviour
 	public GameObject spikeToUse;
 	public GameObject enemyToUse;
 	public GameObject module;
-	public string debugSequence;
+	public string debugSequence; // tier|levelnumber,tier|levelnumber,...
 
 	int easyModuleCount;
 	int mediumModulesCount;
@@ -169,7 +169,7 @@ public class LevelBuilder2 : MonoBehaviour
 				} else if (rawData [0].Equals ("end")) {
 					moduleData [i].endPointHeight = (int)float.Parse (rawData [1]);
 				} else if (rawData [0].Equals ("pla")) {
-					playerPosition = new Vector2 (float.Parse (rawData [1]), float.Parse (rawData [2]));
+					playerPosition = new Vector2 (float.Parse (rawData [1]) + 0.5f, float.Parse (rawData [2]) + 0.5f);
 				} else if (rawData [0].Equals ("spc")) {
 					enemySpawnCounter = int.Parse (rawData [1]);
 					enemySpawnPosition = new Vector2[enemySpawnCounter];
@@ -203,6 +203,7 @@ public class LevelBuilder2 : MonoBehaviour
 	void BuildLevel ()
 	{
 		int n = moduleData.Length;
+
 		for (int i = 0; i < n; i++) {
 			GameObject tempModule = (GameObject)Instantiate (module);
 			ModuleBuilder2 mb = tempModule.GetComponent<ModuleBuilder2> ();

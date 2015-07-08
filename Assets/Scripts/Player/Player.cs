@@ -131,6 +131,8 @@ public class Player : MonoBehaviour
 			blinkBar.value = 1 / playerMovement.blinkCoolDown * timeSinceBlink;
 		}
 
+		EnableEnemiesInRange ();
+
 		oldPos = body.position;
 	}
     
@@ -220,6 +222,13 @@ public class Player : MonoBehaviour
 		}
 	}
 
+	void EnableEnemiesInRange ()
+	{
+		Collider2D[] colliders = Physics2D.OverlapCircleAll (transform.position, 36.0f, enemyLayerMask);
+		foreach (Collider2D collider in colliders) {
+			collider.GetComponentInChildren<EnemyMovement> ().EnablePing ();
+		}
+	}
 
 
 

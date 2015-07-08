@@ -101,7 +101,6 @@ public class PlayerMovement : MonoBehaviour
 				velocity.x = 0.0f;
 			}
 			airTime = 0.0f;
-			Debug.Log ("PEW");
 		} else if ((/*playerInputController.jumping == 1 || */player.jumpKeyPressed) && player.touchesWall != 0) {
 			player.doWallJump = true;
 			wallJumpDirection = -(player.touchesWall);

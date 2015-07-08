@@ -1,5 +1,6 @@
 ﻿using UnityEngine;
 using System.Collections;
+using System.Collections.Generic;
 
 public class ModuleBuilder2 : MonoBehaviour
 {
@@ -101,6 +102,7 @@ public class ModuleBuilder2 : MonoBehaviour
 	void InstantiateEnemy (float x, float y, Transform container)
 	{
 		GameObject enemy = (GameObject)Instantiate (moduleData.enemyToUse, new Vector3 (x, y, 0), Quaternion.identity);
+		enemy.GetComponent<EnemyMovement> ().enabled = false;
 		enemy.transform.parent = container;
 	}
 }

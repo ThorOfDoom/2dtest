@@ -16,6 +16,7 @@ public class EnemyMovement : MonoBehaviour
 	Vector2 velocity;
 	bool flipedLastFrame = true;
 	float halveBodyWidth;
+	float halveBodyHeight;
 	bool isGrounded;
 	bool groundedLastFrame;
 	float airtime;
@@ -27,6 +28,7 @@ public class EnemyMovement : MonoBehaviour
 		body = GetComponent<Rigidbody2D> ();
 		clldr = GetComponent<BoxCollider2D> ();
 		halveBodyWidth = transform.localScale.x / 2;
+		halveBodyHeight = transform.localScale.y / 2;
 		isGrounded = groundedLastFrame = Grounded ();
 		airtime = 0.0f;
 		pingCounter = 0;
@@ -118,8 +120,10 @@ public class EnemyMovement : MonoBehaviour
 		if (groundedLastFrame && !isGrounded) {
 			return true;
 		}
+		
 		float circleXPos = transform.position.x + (halveBodyWidth * transform.localScale.x);
-		Collider2D collision = Physics2D.OverlapCircle (new Vector2 (circleXPos, transform.position.y), 
+		float circleYPos = transform.position.y - halveBodyHeight + checkRadius + 0.05f;
+		Collider2D collision = Physics2D.OverlapCircle (new Vector2 (circleXPos, circleYPos), 
 		                                                checkRadius, 
 		                                                 platformLayerMask);
 
@@ -147,7 +151,8 @@ public class EnemyMovement : MonoBehaviour
 	{
 		if (clldr != null) {
 			float circleXPos = transform.position.x + (halveBodyWidth * transform.localScale.x);
-			Gizmos.DrawWireSphere (new Vector3 (circleXPos, transform.position.y, 0.0f), 
+			float circleYPos = transform.position.y - halveBodyHeight + checkRadius + 0.05f;
+			Gizmos.DrawWireSphere (new Vector3 (circleXPos, circleYPos, 0.0f), 
 			                       checkRadius);
 			Vector2 groundCheckPoint = new Vector2 (transform.position.x + ((halveBodyWidth + checkRadius) * transform.localScale.x), 
 			                                        clldr.bounds.min.y - checkRadius);

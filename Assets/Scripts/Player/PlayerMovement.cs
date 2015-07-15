@@ -11,6 +11,9 @@ public class PlayerMovement : MonoBehaviour
 	public float slideReductionMultiplier;
 	public float airSlideReductionMultiplier;
 	public float wallJumpTime;
+	public float wallJumpModifier;
+	public float wallJumpForceMoifier;
+	public Vector2 jumpUpWallDistance;
 	public float blinkDistance;
 	public float blinkCoolDown;
 	public LayerMask blinkLayerMask;
@@ -29,6 +32,8 @@ public class PlayerMovement : MonoBehaviour
 	float initialJumpVelocity;
 	float airTime = 0.0f;
 	int wallJumpDirection = 0;
+	bool jumpUpWall = false;
+	Vector2 jumpUpWallForce;
 	Vector2 knockBackForce;
 	float knockBackAirTime = 0.0f;
 	Vector2 knockBackVelocity = new Vector2 ();
@@ -60,7 +65,7 @@ public class PlayerMovement : MonoBehaviour
 					velocity.x = absVelX + runAcceleration;
 				} else {
 					velocity.x = runVelocity;
-				}
+				}	
 			} else {
 				velocity.x = walkVelocity;
 			}
@@ -97,13 +102,15 @@ public class PlayerMovement : MonoBehaviour
 		} else if (player.doWallJump && (airTime > wallJumpTime)) {
 			player.doWallJump = false;
 			wallJumpDirection = 0;
+			jumpUpWall = false;
 			if (playerInputController.moving == 0) {
 				velocity.x = 0.0f;
 			}
 			airTime = 0.0f;
-		} else if ((/*playerInputController.jumping == 1 || */player.jumpKeyPressed) && player.touchesWall != 0) {
+		} else if ((playerInputController.jumping == 1 || player.jumpKeyPressed) && player.touchesWall != 0) {
 			player.doWallJump = true;
 			wallJumpDirection = -(player.touchesWall);
+			jumpUpWall = (player.touchesWall == playerInputController.moving) ? true : false;
 			airTime = 0.0f;
 			player.jumpKeyPressed = false;
 		} 
@@ -120,16 +127,30 @@ public class PlayerMovement : MonoBehaviour
 				velocity.y = velocity.y < 0 ? velocity.y : 0.0f;
 			}
 			Debug.DrawLine (player.oldPos, body.position, Color.red, 5.0f);
+		} else if (jumpUpWall) {
+			airTime += Time.deltaTime;
+
+			jumpUpWallForce = new Vector2 (Mathf.Sqrt (2.0f * Mathf.Abs (Physics2D.gravity.y) * jumpUpWallDistance.x),
+			                               Mathf.Sqrt (2.0f * Mathf.Abs (Physics2D.gravity.y) * jumpUpWallDistance.y));
+
+			velocity.x = (jumpUpWallForce.x + Physics2D.gravity.y * airTime) * wallJumpDirection;
+			velocity.y = jumpUpWallForce.y + Physics2D.gravity.y * airTime;
+			
+			didMove = true;
+			lastKnownVelocityX = velocity.x;
+			
+			Debug.DrawLine (player.oldPos, body.position, Color.white, 5.0f);
 		} else if (player.doWallJump) {
 			airTime += Time.deltaTime;
-			velocity.y = initialJumpVelocity + Physics2D.gravity.y * airTime;
-			velocity.x = (player.shouldRun ? runVelocity : walkVelocity) * wallJumpDirection;// TODO what if we are running?
+			velocity.y = wallJumpModifier * initialJumpVelocity + Physics2D.gravity.y * airTime;
+			velocity.x = wallJumpForceMoifier * runVelocity * wallJumpDirection;// TODO what if we are running?
 			transform.localScale = new Vector3 (
 				Mathf.Abs (transform.localScale.x) * (body.velocity.x > 0 ? 1 : -1), 
 				transform.localScale.y, 
 				transform.localScale.z);
 			didMove = true;
 			lastKnownVelocityX = velocity.x;
+			//Debug.Log (player.touchesWall == playerInputController.moving);
 			Debug.DrawLine (player.oldPos, body.position, Color.yellow, 5.0f);
 		} else if (!player.grounded) {
 			Debug.DrawLine (player.oldPos, body.position, Color.magenta, 5.0f);

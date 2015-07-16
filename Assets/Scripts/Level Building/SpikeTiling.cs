@@ -44,15 +44,16 @@ public class SpikeTiling : MonoBehaviour
 	void UpdateCollider ()
 	{
 		int width = (int)_width;
+		
+		PolygonCollider2D col = spike.GetComponent<PolygonCollider2D> ();
+		List<Vector2> pathPoints = new List<Vector2> ();
+		pathPoints.Add (new Vector2 (-0.5f - 1 / (2 * _width) + (1 / _width), 0.4f));
 		if (width > 1) {
-			PolygonCollider2D col = spike.GetComponent<PolygonCollider2D> ();
-			List<Vector2> pathPoints = new List<Vector2> ();
-			pathPoints.Add (new Vector2 (-0.5f - 1 / (2 * _width) + (1 / _width), 0.4f));
 			pathPoints.Add (new Vector2 (-0.5f - 1 / (2 * _width) + (1 / _width) * width, 0.4f));
-			pathPoints.Add (new Vector2 (-0.5f + (1 / _width) * width, -0.5f));
-			pathPoints.Add (new Vector2 (-0.5f, -0.5f));
-			col.points = pathPoints.ToArray ();
 		}
+		pathPoints.Add (new Vector2 (-0.55f + (1 / _width) * width, -0.5f));
+		pathPoints.Add (new Vector2 (-0.45f, -0.5f));
+		col.points = pathPoints.ToArray ();
 	}
 
 	void RotateSpike ()

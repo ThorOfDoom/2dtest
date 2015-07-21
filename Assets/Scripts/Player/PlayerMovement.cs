@@ -119,7 +119,7 @@ public class PlayerMovement : MonoBehaviour
 			airTime += Time.deltaTime;
 			if (player.shouldJump) {
 				velocity.y = initialJumpVelocity + Physics2D.gravity.y * airTime;
-			} else if (player.touchesWall != 0) {
+			} else if (player.touchesWall != 0 && playerInputController.moving != 0) {
 				isJumping = false;
 				player.shouldJump = false;
 				airTime = 0.0f;
@@ -128,7 +128,11 @@ public class PlayerMovement : MonoBehaviour
 			}
 			Debug.DrawLine (player.oldPos, body.position, Color.red, 5.0f);
 		} else if (jumpUpWall) {
+			if (wallJumpDirection == playerInputController.moving) {
+				airTime = wallJumpTime;
+			}
 			airTime += Time.deltaTime;
+
 
 			jumpUpWallForce = new Vector2 (Mathf.Sqrt (2.0f * Mathf.Abs (Physics2D.gravity.y) * jumpUpWallDistance.x),
 			                               Mathf.Sqrt (2.0f * Mathf.Abs (Physics2D.gravity.y) * jumpUpWallDistance.y));

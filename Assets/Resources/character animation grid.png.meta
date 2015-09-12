@@ -1,0 +1,242 @@
+fileFormatVersion: 2
+guid: c3fa608b9269a44c7aa85fa1e8169e0d
+timeCreated: 1442075842
+licenseType: Free
+TextureImporter:
+  fileIDToRecycleName:
+    21300000: character animation grid_0
+    21300002: character animation grid_1
+    21300004: Run1
+    21300006: Run2
+    21300008: Run3
+    21300010: Run
+    21300012: character animation grid_6
+    21300014: WallHang
+    21300016: JumpUp
+    21300018: JumpDown
+    21300020: Stop
+    21300022: Idle1
+    21300024: Idle2
+    21300026: Walk1
+    21300028: Walk2
+    21300030: Walk3
+    21300032: Walk4
+  serializedVersion: 2
+  mipmaps:
+    mipMapMode: 0
+    enableMipMap: 0
+    linearTexture: 0
+    correctGamma: 0
+    fadeOut: 0
+    borderMipMap: 0
+    mipMapFadeDistanceStart: 1
+    mipMapFadeDistanceEnd: 3
+  bumpmap:
+    convertToNormalMap: 0
+    externalNormalMap: 0
+    heightScale: .25
+    normalMapFilter: 0
+  isReadable: 0
+  grayScaleToAlpha: 0
+  generateCubemap: 0
+  cubemapConvolution: 0
+  cubemapConvolutionSteps: 8
+  cubemapConvolutionExponent: 1.5
+  seamlessCubemap: 0
+  textureFormat: -3
+  maxTextureSize: 4096
+  textureSettings:
+    filterMode: -1
+    aniso: 16
+    mipBias: -1
+    wrapMode: 1
+  nPOTScale: 0
+  lightmap: 0
+  rGBM: 0
+  compressionQuality: 50
+  spriteMode: 2
+  spriteExtrude: 1
+  spriteMeshType: 1
+  alignment: 0
+  spritePivot: {x: .5, y: .5}
+  spriteBorder: {x: 0, y: 0, z: 0, w: 0}
+  spritePixelsToUnits: 350
+  alphaIsTransparency: 1
+  textureType: 8
+  buildTargetSettings: []
+  spriteSheet:
+    sprites:
+    - name: character animation grid_0
+      rect:
+        serializedVersion: 2
+        x: 0
+        y: 1300
+        width: 650
+        height: 650
+      alignment: 0
+      pivot: {x: .5, y: .5}
+      border: {x: 0, y: 0, z: 0, w: 0}
+    - name: character animation grid_1
+      rect:
+        serializedVersion: 2
+        x: 650
+        y: 1300
+        width: 650
+        height: 650
+      alignment: 0
+      pivot: {x: .5, y: .5}
+      border: {x: 0, y: 0, z: 0, w: 0}
+    - name: Run1
+      rect:
+        serializedVersion: 2
+        x: 1300
+        y: 1300
+        width: 650
+        height: 650
+      alignment: 0
+      pivot: {x: .5, y: .5}
+      border: {x: 0, y: 0, z: 0, w: 0}
+    - name: Run2
+      rect:
+        serializedVersion: 2
+        x: 1950
+        y: 1300
+        width: 650
+        height: 650
+      alignment: 0
+      pivot: {x: .5, y: .5}
+      border: {x: 0, y: 0, z: 0, w: 0}
+    - name: Run3
+      rect:
+        serializedVersion: 2
+        x: 2600
+        y: 1300
+        width: 650
+        height: 650
+      alignment: 0
+      pivot: {x: .5, y: .5}
+      border: {x: 0, y: 0, z: 0, w: 0}
+    - name: Run
+      rect:
+        serializedVersion: 2
+        x: 3250
+        y: 1300
+        width: 650
+        height: 650
+      alignment: 0
+      pivot: {x: .5, y: .5}
+      border: {x: 0, y: 0, z: 0, w: 0}
+    - name: character animation grid_6
+      rect:
+        serializedVersion: 2
+        x: 0
+        y: 650
+        width: 650
+        height: 650
+      alignment: 0
+      pivot: {x: .5, y: .5}
+      border: {x: 0, y: 0, z: 0, w: 0}
+    - name: WallHang
+      rect:
+        serializedVersion: 2
+        x: 650
+        y: 650
+        width: 650
+        height: 650
+      alignment: 0
+      pivot: {x: .5, y: .5}
+      border: {x: 0, y: 0, z: 0, w: 0}
+    - name: JumpUp
+      rect:
+        serializedVersion: 2
+        x: 1300
+        y: 650
+        width: 650
+        height: 650
+      alignment: 0
+      pivot: {x: .5, y: .5}
+      border: {x: 0, y: 0, z: 0, w: 0}
+    - name: JumpDown
+      rect:
+        serializedVersion: 2
+        x: 1950
+        y: 650
+        width: 650
+        height: 650
+      alignment: 0
+      pivot: {x: .5, y: .5}
+      border: {x: 0, y: 0, z: 0, w: 0}
+    - name: Stop
+      rect:
+        serializedVersion: 2
+        x: 2600
+        y: 650
+        width: 650
+        height: 650
+      alignment: 0
+      pivot: {x: .5, y: .5}
+      border: {x: 0, y: 0, z: 0, w: 0}
+    - name: Idle1
+      rect:
+        serializedVersion: 2
+        x: 0
+        y: 0
+        width: 650
+        height: 650
+      alignment: 0
+      pivot: {x: .5, y: .5}
+      border: {x: 0, y: 0, z: 0, w: 0}
+    - name: Idle2
+      rect:
+        serializedVersion: 2
+        x: 650
+        y: 0
+        width: 650
+        height: 650
+      alignment: 0
+      pivot: {x: .5, y: .5}
+      border: {x: 0, y: 0, z: 0, w: 0}
+    - name: Walk1
+      rect:
+        serializedVersion: 2
+        x: 1300
+        y: 0
+        width: 650
+        height: 650
+      alignment: 0
+      pivot: {x: .5, y: .5}
+      border: {x: 0, y: 0, z: 0, w: 0}
+    - name: Walk2
+      rect:
+        serializedVersion: 2
+        x: 1950
+        y: 0
+        width: 650
+        height: 650
+      alignment: 0
+      pivot: {x: .5, y: .5}
+      border: {x: 0, y: 0, z: 0, w: 0}
+    - name: Walk3
+      rect:
+        serializedVersion: 2
+        x: 2600
+        y: 0
+        width: 650
+        height: 650
+      alignment: 0
+      pivot: {x: .5, y: .5}
+      border: {x: 0, y: 0, z: 0, w: 0}
+    - name: Walk4
+      rect:
+        serializedVersion: 2
+        x: 3241
+        y: 4
+        width: 650
+        height: 650
+      alignment: 0
+      pivot: {x: .5, y: .5}
+      border: {x: 0, y: 0, z: 0, w: 0}
+  spritePackingTag: 
+  userData: 
+  assetBundleName: 
+  assetBundleVariant: 

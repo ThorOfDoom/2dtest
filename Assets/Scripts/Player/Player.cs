@@ -57,7 +57,7 @@ public class Player : MonoBehaviour
 	PlayerMovement playerMovement;
 	Rigidbody2D body;
 	BoxCollider2D clldr;
-	Animator anim;
+	public Animator anim;
 	PlayerAttack playerAttack;
 	bool jumpFinished = true;
 	float lastKnownVelocityX;
@@ -112,8 +112,10 @@ public class Player : MonoBehaviour
 		CheckIfOutsideBounds ();
 
 		grounded = isGrounded ();
+		anim.SetBool ("Grounded", grounded);
 		touchesWall = !grounded ? isTouchingWall () : 0;
-
+		Debug.Log (touchesWall != 0 ? true : false);
+		anim.SetBool("TouchesWall", touchesWall != 0 ? true : false);
 		if (shouldBlink) {
 			playerMovement.DoBlink ();
 		} else if (knockBack) {
@@ -151,7 +153,8 @@ public class Player : MonoBehaviour
 		} else {
 			shouldMove = false;
 		}
-		
+
+
 		if (playerInputController.running || playerInputController.runToggle) {
 			shouldRun = true;
 		} else {

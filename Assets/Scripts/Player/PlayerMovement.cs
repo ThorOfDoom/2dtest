@@ -55,12 +55,15 @@ public class PlayerMovement : MonoBehaviour
 	}
 
 	public void MovePlayer ()
-	{// TODO: split it up into seperat methods
+	{// TODO: split it up into seperat methods 
 		velocity.y = body.velocity.y;
+		player.anim.SetFloat ("VelY", body.velocity.y);
 		float absVelX = Mathf.Abs (velocity.x);
 		// TODO feels hackish
 		if (player.shouldMove/* && playerInputController.moving != 0*/) {
+			player.anim.SetBool("ShouldMove",true);
 			if (player.shouldRun) {
+				player.anim.SetBool("ShouldRun",true);
 				if ((absVelX + runAcceleration) <= runVelocity) {
 					velocity.x = absVelX + runAcceleration;
 				} else {
@@ -68,6 +71,7 @@ public class PlayerMovement : MonoBehaviour
 				}	
 			} else {
 				velocity.x = walkVelocity;
+				player.anim.SetBool("ShouldRun",false);
 			}
 			velocity.x *= playerInputController.moving;
 			
@@ -82,24 +86,20 @@ public class PlayerMovement : MonoBehaviour
 			didMove = true;
 			lastKnownVelocityX = velocity.x;
 		} else if (didMove) {
+			player.anim.SetBool("ShouldMove",false);
 			if (Mathf.Abs (lastKnownVelocityX) > walkVelocity || !player.grounded) {
 				lastKnownVelocityX *= !player.grounded ? airSlideReductionMultiplier : slideReductionMultiplier;
+				player.anim.SetBool("ShouldSlide",true);
 			} else {
 				didMove = false;
 				lastKnownVelocityX = 0.0f;
+				player.anim.SetBool("ShouldSlide",false);
 			}
 			velocity.x = lastKnownVelocityX;
 			Debug.DrawLine (player.oldPos, body.position, Color.green, 5.0f);
 		}
 		
-		if (player.shouldJump && !isJumping && player.grounded && !player.doWallJump) {
-			isJumping = true;
-		} else if (isJumping && player.grounded && !player.doWallJump) {
-			isJumping = false;
-			player.shouldJump = false;
-			airTime = 0.0f;
-			velocity.y = 0.0f;
-		} else if (player.doWallJump && (airTime > wallJumpTime)) {
+		if (player.doWallJump && (airTime > wallJumpTime)) {
 			player.doWallJump = false;
 			wallJumpDirection = 0;
 			jumpUpWall = false;
@@ -113,7 +113,14 @@ public class PlayerMovement : MonoBehaviour
 			jumpUpWall = (player.touchesWall == playerInputController.moving) ? true : false;
 			airTime = 0.0f;
 			player.jumpKeyPressed = false;
-		} 
+		} else if (player.shouldJump && !isJumping && player.grounded && !player.doWallJump) {
+			isJumping = true;
+		} else if (isJumping && player.grounded && !player.doWallJump) {
+			isJumping = false;
+			player.shouldJump = false;
+			airTime = 0.0f;
+			velocity.y = 0.0f;
+		}
 		
 		if (isJumping) {
 			airTime += Time.deltaTime;

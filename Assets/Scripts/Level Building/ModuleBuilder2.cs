@@ -33,7 +33,7 @@ public class ModuleBuilder2 : MonoBehaviour
 		blockToUse = (GameObject)Instantiate (moduleData.blockToUse);
 		blockToUse.name = "block";
 		MeshRenderer meshRenderer = blockToUse.GetComponentInChildren<MeshRenderer> ();
-		meshRenderer.material = moduleData.blockTexture;
+		//meshRenderer.material = moduleData.blockTexture;
 
 		spikeToUse = (GameObject)Instantiate (moduleData.spikeToUse);
 		spikeToUse.name = "spike";

@@ -114,10 +114,11 @@ public class Player : MonoBehaviour
 		grounded = isGrounded ();
 		anim.SetBool ("Grounded", grounded);
 		touchesWall = !grounded ? isTouchingWall () : 0;
-		Debug.Log (touchesWall != 0 ? true : false);
-		anim.SetBool("TouchesWall", touchesWall != 0 ? true : false);
+		//Debug.Log (touchesWall != 0 ? true : false);
+		anim.SetBool ("TouchesWall", touchesWall != 0 ? true : false);
 		if (shouldBlink) {
-			playerMovement.DoBlink ();
+			//playerMovement.DoBlink ();
+			playerMovement.DoBlink (playerInputController.lastClickPosition);
 		} else if (knockBack) {
 			playerMovement.KnockBack ();
 		} else {
@@ -143,6 +144,7 @@ public class Player : MonoBehaviour
 	void Update ()
 	{
 		CheckInputs ();
+		//Debug.Log (Camera.main.ScreenToWorldPoint (Input.mousePosition) + "|" + transform.position);
 	}
 
 	
@@ -184,10 +186,10 @@ public class Player : MonoBehaviour
 
 		if (playerInputController.attacking) {
 			shouldAttack = true;
-			anim.SetBool ("doHit", true);
+			//anim.SetBool ("doHit", true);
 		} else {
 			shouldAttack = false;
-			anim.SetBool ("doHit", false);
+			//anim.SetBool ("doHit", false);
 		}
 	}
 

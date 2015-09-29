@@ -10,6 +10,7 @@ public class PlayerInputController : MonoBehaviour
 	public bool runToggle = false;
 	public int jumping;
 	public bool blinking = false;
+	public Vector2 lastClickPosition = new Vector2 (0.0f, 0.0f);
 	public bool attacking = false;
 
 	Dictionary<string, string> keyBindings;
@@ -52,12 +53,19 @@ public class PlayerInputController : MonoBehaviour
 		}
 		
 		
-		if (Input.GetKeyDown (keyBindings ["blink"]) || Input.GetKeyDown (keyBindings ["blinkAlt"])) {
+		/*if (Input.GetKeyDown (keyBindings ["blink"]) || Input.GetKeyDown (keyBindings ["blinkAlt"])) {
 			blinking = true;
 		} else {
 			blinking = false;
+		}*/
+
+		if (Input.GetMouseButtonDown (0)) {
+			blinking = true;
+			lastClickPosition.x = Input.mousePosition.x;
+			lastClickPosition.y = Input.mousePosition.y;
+		} else {
+			blinking = false;
 		}
-		
 		
 		if (Input.GetKey (keyBindings ["attack"]) || Input.GetKey (keyBindings ["attackAlt"])) {
 			attacking = true;

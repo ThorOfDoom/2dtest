@@ -61,9 +61,9 @@ public class PlayerMovement : MonoBehaviour
 		float absVelX = Mathf.Abs (velocity.x);
 		// TODO feels hackish
 		if (player.shouldMove/* && playerInputController.moving != 0*/) {
-			player.anim.SetBool("ShouldMove",true);
+			player.anim.SetBool ("ShouldMove", true);
 			if (player.shouldRun) {
-				player.anim.SetBool("ShouldRun",true);
+				player.anim.SetBool ("ShouldRun", true);
 				if ((absVelX + runAcceleration) <= runVelocity) {
 					velocity.x = absVelX + runAcceleration;
 				} else {
@@ -71,7 +71,7 @@ public class PlayerMovement : MonoBehaviour
 				}	
 			} else {
 				velocity.x = walkVelocity;
-				player.anim.SetBool("ShouldRun",false);
+				player.anim.SetBool ("ShouldRun", false);
 			}
 			velocity.x *= playerInputController.moving;
 			
@@ -86,14 +86,14 @@ public class PlayerMovement : MonoBehaviour
 			didMove = true;
 			lastKnownVelocityX = velocity.x;
 		} else if (didMove) {
-			player.anim.SetBool("ShouldMove",false);
+			player.anim.SetBool ("ShouldMove", false);
 			if (Mathf.Abs (lastKnownVelocityX) > walkVelocity || !player.grounded) {
 				lastKnownVelocityX *= !player.grounded ? airSlideReductionMultiplier : slideReductionMultiplier;
-				player.anim.SetBool("ShouldSlide",true);
+				player.anim.SetBool ("ShouldSlide", true);
 			} else {
 				didMove = false;
 				lastKnownVelocityX = 0.0f;
-				player.anim.SetBool("ShouldSlide",false);
+				player.anim.SetBool ("ShouldSlide", false);
 			}
 			velocity.x = lastKnownVelocityX;
 			Debug.DrawLine (player.oldPos, body.position, Color.green, 5.0f);
@@ -170,16 +170,38 @@ public class PlayerMovement : MonoBehaviour
 		body.velocity = velocity;
 	}
 
-	public void DoBlink ()
+	/*public void DoBlink ()
 	{
 		float _blinkDistance = CheckBlinkDistance ();
 		_blinkDistance *= (facingRight ? 1 : -1);
 		transform.position += new Vector3 (_blinkDistance, 0.0f, 0.0f);
 		player.oldPos = transform.position;
 		player.shouldBlink = false;
+	}*/
+	public void DoBlink (Vector2 clickPosition)
+	{
+		Vector2 cp = Camera.main.ScreenToWorldPoint (clickPosition);
+		cp = CheckBlinkDistance (cp);
+		transform.position = cp;
+		player.oldPos = transform.position;
+		player.shouldBlink = false;
 	}
 
-	float CheckBlinkDistance ()
+	Vector2 CheckBlinkDistance (Vector2 clickPosition)
+	{
+		float clickBlinkDistance = Vector2.Distance (transform.position, clickPosition);
+		if (blinkDistance < clickBlinkDistance) {
+			float distanceRelation = clickBlinkDistance / blinkDistance;
+			clickPosition.x = transform.position.x + ((clickPosition.x - transform.position.x) / distanceRelation);
+			clickPosition.y = transform.position.y + ((clickPosition.y - transform.position.y) / distanceRelation);
+			Debug.Log (Vector2.Distance (transform.position, clickPosition));
+			return clickPosition;
+		} else {
+			return clickPosition;
+		}
+	}
+
+	/*float CheckBlinkDistance ()
 	{
 		float distance = blinkDistance;
 		Vector3 skinDepth = new Vector3 (transform.localScale.x / 2, 0.0f, 0.0f);
@@ -198,7 +220,7 @@ public class PlayerMovement : MonoBehaviour
 		}
 		
 		return Mathf.Round (distance * 10) / 10.0f;
-	}
+	}*/
 
 	public 	void KnockBack ()
 	{

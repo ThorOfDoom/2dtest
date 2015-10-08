@@ -90,6 +90,17 @@ public class ModuleBuilder2 : MonoBehaviour
 		spike.name = name;
 	}
 
+	void PlaceBackrounds ()
+	{
+		GameObject backgroundContainer = new GameObject ("Backgrounds");
+		backgroundContainer.transform.parent = transform;
+		InstantiateBackground (backgroundContainer.transform "BackgroundLayer3);
+	}
+
+	void InstantiateBackground (Transform container, string name)
+	{
+	}
+
 	void SpawnEnemies ()
 	{
 		GameObject enemyContainer = new GameObject ("Enemies");

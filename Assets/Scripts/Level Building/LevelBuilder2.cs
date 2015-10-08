@@ -145,6 +145,7 @@ public class LevelBuilder2 : MonoBehaviour
 	{
 		List<Vector4> blockData = new List<Vector4> ();
 		List<Vector4> spikeData = new List<Vector4> ();
+		List<Material> backgroundTextures = new List<Material> ();
 		Vector2[] enemySpawnPosition = null;
 		int enemySpawnCounter = -1;
 
@@ -265,6 +266,7 @@ public struct ModuleData
 	public Vector4[] blocks; // this is an example of a  feature vector ???
 	public Vector4[] spikes;
 	public Vector2[] enemies;
+	public Material[] backgroundTextures;
 	public int startPointHeight;
 	public int endPointHeight;
 	public GameObject blockToUse;
